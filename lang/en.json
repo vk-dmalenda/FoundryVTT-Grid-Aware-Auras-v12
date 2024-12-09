@@ -1,5 +1,9 @@
 {
-	"HEXAURAS": {
-		"HexAuras": "Hex Auras"
+	"GRIDALIGNEDAURAS": {
+		"Auras": "Auras",
+		"LineType": "Line Type",
+		"LineTypeDashed": "Dashed",
+		"LineTypeNone": "None",
+		"LineTypeSolid": "Solid"
 	}
 }

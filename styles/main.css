@@ -1,0 +1,37 @@
+.grid-aligned-auras-aura-config hr {
+	width: 100%;
+	border-top: 2px groove #FFFFFF;
+}
+
+.grid-aligned-auras-list {
+	border: none;
+	background: none;
+}
+.grid-aligned-auras-list thead {
+	background: none;
+	border-bottom: none;
+	color: inherit;
+	text-shadow: none;
+}
+
+.icon-checkbox {
+	display: inline-block;
+	cursor: pointer;
+}
+.icon-checkbox > input {
+	display: none;
+}
+.icon-checkbox:has(input:checked) > .icon-unchecked,
+.icon-checkbox:has(input:not(:checked)) > .icon-checked {
+	display: none;
+}
+.icon-checkbox:hover > i {
+	text-shadow: 0 0 8px var(--color-shadow-primary);
+}
+
+/* ------- */
+/* Utility */
+/* ------- */
+.text-center {
+	text-align: center;
+}

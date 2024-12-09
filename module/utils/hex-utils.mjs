@@ -20,19 +20,20 @@ const offsets = new Map(new Array(12).fill(0)
  * @param {Object} [options]
  * @param {number} [options.gridSize] The size of the grid in pixels.
  * @param {boolean} [options.cols] Whether the grid is using columns (true), or rows (false).
- * @param {number} [options.centreSize] The size of the centre/token of the aura in grid cells. Most be a positive, non-zero integer.
+ * @param {number} [options.centerSize] The size of the centre/token of the aura in grid cells. Most be a positive, non-zero integer.
  * @param {boolean} [options.heavy] For evenly-sized centres, whether the bottom of the hexagon is the larger part.
  */
-export function generateHexAuraPolygon(radius, { gridSize = 100, cols = false, centreSize = 1, heavy = false } = {}) {
+export function generateHexAuraPolygon(radius, { gridSize = 100, cols = false, centerSize = 1, heavy = false } = {}) {
 	if ((radius % 1) !== 0)
 		throw new Error("`radius` argument must be an integer.");
-	if ((centreSize % 1) !== 0 || centreSize < 1)
-		throw new Error("`centreSize` argument must be a positive, non-zero integer.");
-	if (radius + centreSize <= 0)
-		throw new Error("Resulting hex aura cannot be of size 0 or smaller.");
+	if ((centerSize % 1) !== 0 || centerSize < 1)
+		throw new Error("`centerSize` argument must be a positive, non-zero integer.");
 
 	// The given centreSize is the actual token size, nor the radius of the centre, so calculate the radius.
-	const centreRadius = Math.ceil(centreSize / 2);
+	const centerRadius = Math.ceil(centerSize / 2);
+
+	if (radius + centerRadius <= 0)
+		throw new Error("Resulting hex aura cannot be of size 0 or smaller.");
 
 	/** Size of an individual length of a single hexagon. */
 	const edgeLength = gridSize * UNIT_SIDE_LENGTH;
@@ -49,8 +50,8 @@ export function generateHexAuraPolygon(radius, { gridSize = 100, cols = false, c
 	// and measuring how far off it was in the different directions.
 	// Look I KNOW it's REALLY awful okay, but it works... I think... so we'll just leave it like this. 🙈
 	let cursorX = cols
-		? centreSize === 1 ? (edgeLength / 2) : (4 * edgeLength * offsets.get(300)[0])
-		: (radius - 1) * offsets.get(210)[0] * edgeLength - (centreSize === 1 ? gridSize / 2 : 0);
+		? centerSize === 1 ? (edgeLength / 2) : (4 * edgeLength * offsets.get(300)[0])
+		: (radius - 1) * offsets.get(210)[0] * edgeLength - (centerSize === 1 ? gridSize / 2 : 0);
 
 	let cursorY = cols
 		? 2 * edgeLength * offsets.get(300)[1] * radius
@@ -65,12 +66,11 @@ export function generateHexAuraPolygon(radius, { gridSize = 100, cols = false, c
 	};
 
 	for (let i = 0; i < 6; i++) {
-
 		// Work out how many grid-cell hexes this side of the resulting aura hex should have.
 		// Auras with even-sized tokens work slightly differently. Every other side has an additional hex on it.
 		// Whether the long side is on the top or bottom depends on the orientation of the token (whether it is "heavy")
-		let hexesPerSide = radius + centreRadius;
-		if ((centreSize % 2) === 0) {
+		let hexesPerSide = radius + centerRadius;
+		if ((centerSize % 2) === 0) {
 			hexesPerSide += +((i % 2) === (heavy ? 1 : 0));
 		}
 

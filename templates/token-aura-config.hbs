@@ -1,3 +1,57 @@
-<div class="tab" data-group="main" data-tab="hexauras">
-	<p>Placeholder. Actual controls will be here soon.</p>
-</div>
+<table class="grid-aligned-auras-list">
+	<thead>
+		<th style="width: 24px">&nbsp;</th>
+		<th>Name</th>
+		<th style="width: 58px">Radius</th>
+		<th style="width: 58px">Line</th>
+		<th style="width: 58px">Fill</th>
+		<th style="width: 24px">&nbsp;</th>
+		<th style="width: 24px">
+			<a data-action="grid-aligned-auras-add">
+				<i class="fas fa-plus"></i>
+			</a>
+		</th>
+	</thead>
+
+	<tbody>
+		{{#each auras as |aura idx|}}
+			<tr data-aura-id="{{aura.id}}">
+				<td>
+					<label class="icon-checkbox" style="width: 18px">
+						<input type="checkbox" data-action="grid-aligned-auras-toggle-enabled" {{checked aura.enabled}}>
+						<i class="far fa-eye-slash icon-unchecked"></i>
+						<i class="fas fa-eye icon-checked"></i>
+					</label>
+				</td>
+				<td>
+					{{aura.name}}
+				</td>
+				<td>
+					{{aura.radius}}
+				</td>
+				<td>
+					{{#unless (eq aura.lineType ../LINE_TYPES.NONE)}}
+						<input type="color" value="{{aura.lineColor}}" disabled>
+					{{/unless}}
+				</td>
+				<td>
+					{{#unless (eq aura.fillType ../FILL_TYPES.NONE)}}
+						<input type="color" value="{{aura.fillColor}}" disabled>
+					{{/unless}}
+				</td>
+				<td>
+					<a data-action="grid-aligned-auras-config">
+						<i class="fas fa-cog"></i>
+					</a>
+				</td>
+				<td class="text-center">
+					<a data-action="grid-aligned-auras-delete">
+						<i class="fas fa-times"></i>
+					</a>
+				</td>
+			</tr>
+	{{/each}}
+	</tbody>
+</table>
+
+<input type="hidden" name="{{flagPath}}" data-dtype="JSON">

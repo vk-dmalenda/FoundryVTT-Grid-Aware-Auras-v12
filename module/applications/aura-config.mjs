@@ -1,0 +1,67 @@
+/** @import { Aura } from ("../utils/aura.mjs"); */
+import { LINE_TYPES, MODULE_NAME } from "../consts.mjs";
+
+export class AuraConfig extends FormApplication {
+
+	/** @type {((aura: Aura) => void) | undefined} */
+	onChange;
+
+	/** @type {(() => void) | undefined} */
+	onClose;
+
+	constructor(aura, options = {}) {
+		super(aura, options);
+	}
+
+	/** @override */
+	static get defaultOptions() {
+		return foundry.utils.mergeObject(super.defaultOptions, {
+			title: "Aura Configuration",
+			classes: ["sheet", "grid-aligned-auras-aura-config"],
+			template: `modules/${MODULE_NAME}/templates/aura-config.hbs`,
+			width: 360,
+			height: "auto",
+			tabs: [{ navSelector: ".tabs", contentSelector: "form" }],
+			submitOnChange: true,
+			closeOnSubmit: false,
+			submitOnClose: false
+		});
+	}
+
+	/** @override */
+	get id() {
+		return `gaa-aura-config-${this.object.id}`;
+	}
+
+	/** @override */
+	async getData(options = {}) {
+		const data = await super.getData(options);
+
+		data.lineTypes = Object.fromEntries(Object.entries(LINE_TYPES)
+			.map(([name, value]) => [value, `GRIDALIGNEDAURAS.LineType${name.titleCase()}`]));
+
+		data.fillTypes = Object.fromEntries(Object.entries(CONST.DRAWING_FILL_TYPES)
+			.map(([name, value]) => [value, `DRAWING.FillType${name.titleCase()}`]));
+
+		return data;
+	}
+
+	/** @override */
+	activateListeners(html) {
+		super.activateListeners(html);
+		html.find("[data-action='close']").on("click", () => this.close());
+	}
+
+	/** @override */
+	async _updateObject(_event, formData) {
+		const aura = foundry.utils.expandObject(formData);
+		this.onChange?.(aura);
+	}
+
+	/** @override */
+	async close(options) {
+		if (options?.callOnClose !== false)
+			this.onClose?.();
+		await super.close(options);
+	}
+}

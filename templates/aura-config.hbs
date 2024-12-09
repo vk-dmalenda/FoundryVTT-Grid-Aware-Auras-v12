@@ -1,0 +1,108 @@
+<form class="flexcol" autocomplete="off">
+	<div class="form-group">
+		<label>{{localize "Name"}}</label>
+		<input type="text" name="name" value="{{object.name}}" required>
+	</div>
+
+	<div class="form-group">
+		<label>Radius</label>
+		<input type="number" name="radius" value="{{object.radius}}" required min="0" step="1">
+	</div>
+
+	<!-- Tabs -->
+	<nav class="sheet-tabs tabs" style="margin-top: 0.5rem">
+        <a class="item" data-tab="lines"><i class="fas fa-paint-brush"></i> {{localize "DRAWING.TabLines"}}</a>
+        <a class="item" data-tab="fill"><i class="fas fa-fill-drip"></i> {{localize "DRAWING.TabFill"}}</a>
+    </nav>
+
+	<!-- Lines tab -->
+    <div class="tab" data-tab="lines">
+		<div class="form-group">
+            <label>{{localize "GRIDALIGNEDAURAS.LineType"}}</label>
+            <select name="lineType" data-dtype="Number">
+                {{selectOptions lineTypes selected=object.lineType localize=true}}
+            </select>
+        </div>
+
+		<div class="form-group">
+            <label>{{localize "DRAWING.LineWidth"}} <span class="units">({{localize "Pixels"}})</span></label>
+			<input type="number" name="lineWidth" value="{{object.lineWidth}}" required min="0" step="1">
+        </div>
+
+		<div class="form-group">
+            <label>{{localize "DRAWING.StrokeColor"}}</label>
+            <div class="form-fields">
+                {{colorPicker name="lineColor" value=object.lineColor}}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>{{localize "DRAWING.LineOpacity"}}</label>
+            <div class="form-fields">
+                {{rangePicker name="lineOpacity" value=object.lineOpacity min="0" max="1" step="0.1"}}
+            </div>
+        </div>
+
+		<div class="form-group">
+			<label>Dash Config</label>
+			<div class="form-fields">
+				<input type="number" name="lineDashSize" placeholder="Dash" value="{{object.lineDashSize}}" required min="0" step="1">
+				<input type="number" name="lineGapSize" placeholder="Gap" value="{{object.lineGapSize}}" required min="0" step="1">
+			</div>
+		</div>
+	</div>
+
+	<!-- Fill tab -->
+    <div class="tab" data-tab="fill">
+		<div class="form-group">
+            <label>{{localize "DRAWING.FillTypes"}}</label>
+            <select name="fillType" data-dtype="Number">
+                {{selectOptions fillTypes selected=object.fillType localize=true}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>{{localize "DRAWING.FillColor"}}</label>
+            <div class="form-fields">
+                {{colorPicker name="fillColor" value=object.fillColor}}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>{{localize "DRAWING.FillOpacity"}}</label>
+            <div class="form-fields">
+                {{rangePicker name="fillOpacity" value=object.fillOpacity min="0" max="1" step="0.1"}}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>{{localize "DRAWING.FillTexture"}}</label>
+            <div class="form-fields">
+                {{filePicker target="fillTexture" type="image"}}
+                <input class="image" type="text" name="fillTexture" placeholder="path/image.png" value="{{object.fillTexture}}"/>
+            </div>
+        </div>
+
+		<div class="form-group">
+			<label>Texture Offset <span class="units">(px)</span></label>
+			<div class="form-fields">
+				<input type="number" name="fillTextureOffset.x" placeholder="x" value="{{object.fillTextureOffset.x}}" required>
+				<input type="number" name="fillTextureOffset.y" placeholder="y" value="{{object.fillTextureOffset.y}}" required>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label>Texture Scale <span class="units">(%)</span></label>
+			<div class="form-fields">
+				<input type="number" name="fillTextureScale.x" placeholder="x" value="{{object.fillTextureScale.x}}" required>
+				<input type="number" name="fillTextureScale.y" placeholder="y" value="{{object.fillTextureScale.y}}" required>
+			</div>
+		</div>
+	</div>
+
+	<hr/>
+
+	<footer class="sheet-footer flexrow">
+        <button type="button" data-action="close">Close</button>
+    </footer>
+</form>
