@@ -1,4 +1,4 @@
-export const MODULE_NAME = "grid-aligned-auras";
+export const MODULE_NAME = "grid-aware-auras";
 
 export const TOKEN_AURAS_FLAG = "auras";
 

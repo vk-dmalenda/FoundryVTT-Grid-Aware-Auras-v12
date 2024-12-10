@@ -1,13 +1,13 @@
-.grid-aligned-auras-aura-config hr {
+.grid-aware-auras-aura-config hr {
 	width: 100%;
 	border-top: 2px groove #FFFFFF;
 }
 
-.grid-aligned-auras-list {
+.grid-aware-auras-list {
 	border: none;
 	background: none;
 }
-.grid-aligned-auras-list thead {
+.grid-aware-auras-list thead {
 	background: none;
 	border-bottom: none;
 	color: inherit;

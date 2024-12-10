@@ -1,4 +1,4 @@
-<table class="grid-aligned-auras-list">
+<table class="grid-aware-auras-list">
 	<thead>
 		<th style="width: 24px">&nbsp;</th>
 		<th>Name</th>
@@ -7,7 +7,7 @@
 		<th style="width: 58px">Fill</th>
 		<th style="width: 24px">&nbsp;</th>
 		<th style="width: 24px">
-			<a data-action="grid-aligned-auras-add">
+			<a data-action="grid-aware-auras-add">
 				<i class="fas fa-plus"></i>
 			</a>
 		</th>
@@ -18,7 +18,7 @@
 			<tr data-aura-id="{{aura.id}}">
 				<td>
 					<label class="icon-checkbox" style="width: 18px">
-						<input type="checkbox" data-action="grid-aligned-auras-toggle-enabled" {{checked aura.enabled}}>
+						<input type="checkbox" data-action="grid-aware-auras-toggle-enabled" {{checked aura.enabled}}>
 						<i class="far fa-eye-slash icon-unchecked"></i>
 						<i class="fas fa-eye icon-checked"></i>
 					</label>
@@ -40,12 +40,12 @@
 					{{/unless}}
 				</td>
 				<td>
-					<a data-action="grid-aligned-auras-config">
+					<a data-action="grid-aware-auras-config">
 						<i class="fas fa-cog"></i>
 					</a>
 				</td>
 				<td class="text-center">
-					<a data-action="grid-aligned-auras-delete">
+					<a data-action="grid-aware-auras-delete">
 						<i class="fas fa-times"></i>
 					</a>
 				</td>

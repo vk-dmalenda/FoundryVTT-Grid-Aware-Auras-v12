@@ -5,7 +5,6 @@ import { LINE_TYPES, MODULE_NAME, TOKEN_AURAS_FLAG } from "../consts.mjs";
  * @property {string} id
  * @property {string} name
  * @property {boolean} enabled
- * @property {boolean} gridAligned
  * @property {number} radius
  * @property {LINE_TYPES} lineType
  * @property {number} lineWidth
@@ -35,7 +34,6 @@ export function getTokenAuras(token) {
 export const auraDefaults = {
 	name: "New Aura",
 	enabled: true,
-	gridAligned: true,
 	radius: 1,
 	lineType: LINE_TYPES.SOLID,
 	lineWidth: 4,

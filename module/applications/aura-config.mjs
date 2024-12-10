@@ -17,7 +17,7 @@ export class AuraConfig extends FormApplication {
 	static get defaultOptions() {
 		return foundry.utils.mergeObject(super.defaultOptions, {
 			title: "Aura Configuration",
-			classes: ["sheet", "grid-aligned-auras-aura-config"],
+			classes: ["sheet", "grid-aware-auras-aura-config"],
 			template: `modules/${MODULE_NAME}/templates/aura-config.hbs`,
 			width: 360,
 			height: "auto",
@@ -38,7 +38,7 @@ export class AuraConfig extends FormApplication {
 		const data = await super.getData(options);
 
 		data.lineTypes = Object.fromEntries(Object.entries(LINE_TYPES)
-			.map(([name, value]) => [value, `GRIDALIGNEDAURAS.LineType${name.titleCase()}`]));
+			.map(([name, value]) => [value, `GRIDAWAREAURAS.LineType${name.titleCase()}`]));
 
 		data.fillTypes = Object.fromEntries(Object.entries(CONST.DRAWING_FILL_TYPES)
 			.map(([name, value]) => [value, `DRAWING.FillType${name.titleCase()}`]));

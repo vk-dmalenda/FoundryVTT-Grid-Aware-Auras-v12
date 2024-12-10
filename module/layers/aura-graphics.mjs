@@ -4,7 +4,7 @@ import { generateHexAuraPolygon } from "../utils/hex-utils.mjs";
 import { drawDashedPath } from "../utils/pixi-utils.mjs";
 
 /**
- * Layer for managing grid aligned auras on a canvas.
+ * Layer for managing grid-aware auras on a canvas.
  */
 export class AuraLayer extends CanvasLayer {
 

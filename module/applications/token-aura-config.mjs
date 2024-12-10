@@ -19,14 +19,14 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 
 	// Insert a tab item for the new control
 	html.find("> nav.sheet-tabs").append(`
-		<a class="item" data-tab="gridalignedauras"><i class="far fa-hexagon"></i> ${game.i18n.localize("GRIDALIGNEDAURAS.Auras")}</a>
+		<a class="item" data-tab="gridawareauras"><i class="far fa-hexagon"></i> ${game.i18n.localize("GRIDAWAREAURAS.Auras")}</a>
 	`);
 
 	// Load template
 	const template = await getTemplate(`modules/${MODULE_NAME}/templates/token-aura-config.hbs`);
 
 	// Create the tab content
-	const tagContent = $(`<div class="tab" data-group="main" data-tab="gridalignedauras"></div>`);
+	const tagContent = $(`<div class="tab" data-group="main" data-tab="gridawareauras"></div>`);
 	html.find("> footer").before(tagContent);
 
 	const getCurrentAuras = () => getTokenAuras(this.preview ?? this.document);
@@ -80,7 +80,7 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 		app.render(true);
 	};
 
-	tagContent.on("click", "[data-action='grid-aligned-auras-add']", () => {
+	tagContent.on("click", "[data-action='grid-aware-auras-add']", () => {
 		const aura = createAura();
 		editAura(aura);
 		this._previewChanges({
@@ -89,18 +89,18 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 		render();
 	});
 
-	tagContent.on("click", "[data-action='grid-aligned-auras-delete']", withAura((_e, auraId) => {
+	tagContent.on("click", "[data-action='grid-aware-auras-delete']", withAura((_e, auraId) => {
 		this._previewChanges({
 			[`flags.${MODULE_NAME}.${TOKEN_AURAS_FLAG}`]: getCurrentAuras().filter(a => a.id !== auraId)
 		});
 		render();
 	}));
 
-	tagContent.on("click", "[data-action='grid-aligned-auras-config']", withAura((_e, _auraId, aura) => {
+	tagContent.on("click", "[data-action='grid-aware-auras-config']", withAura((_e, _auraId, aura) => {
 		editAura(aura);
 	}));
 
-	tagContent.on("change", "[data-action='grid-aligned-auras-toggle-enabled']", withAura((_e, auraId) => {
+	tagContent.on("change", "[data-action='grid-aware-auras-toggle-enabled']", withAura((_e, auraId) => {
 		this._previewChanges({
 			[`flags.${MODULE_NAME}.${TOKEN_AURAS_FLAG}`]: getCurrentAuras().map(a => ({
 				...a,
