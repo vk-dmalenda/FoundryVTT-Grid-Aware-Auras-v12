@@ -21,9 +21,9 @@ const offsets = new Map(new Array(12).fill(0)
  * @param {number} [options.gridSize] The size of the grid in pixels.
  * @param {boolean} [options.cols] Whether the grid is using columns (true), or rows (false).
  * @param {number} [options.centerSize] The size of the centre/token of the aura in grid cells. Most be a positive, non-zero integer.
- * @param {boolean} [options.heavy] For evenly-sized centres, whether the bottom of the hexagon is the larger part.
+ * @param {boolean} [options.isHeavy] For evenly-sized centres, whether the bottom of the hexagon is the larger part.
  */
-export function generateHexAuraPolygon(radius, { gridSize = 100, cols = false, centerSize = 1, heavy = false } = {}) {
+export function generateHexAuraPolygon(radius, { gridSize = 100, cols = false, centerSize = 1, isHeavy = false } = {}) {
 	if ((radius % 1) !== 0)
 		throw new Error("`radius` argument must be an integer.");
 	if ((centerSize % 1) !== 0 || centerSize < 1)
@@ -46,16 +46,7 @@ export function generateHexAuraPolygon(radius, { gridSize = 100, cols = false, c
 
 	// Initial cursor position is calculated so that the (0,0) of the polygon lines up with the top-left corner of the
 	// bounding box of the centre shape (so that we can easily position this hex on tokens)
-	// Honestly I don't understand the maths behind this at all, I determined this by drawing a bunch of debug points
-	// and measuring how far off it was in the different directions.
-	// Look I KNOW it's REALLY awful okay, but it works... I think... so we'll just leave it like this. 🙈
-	let cursorX = cols
-		? centerSize === 1 ? (edgeLength / 2) : (4 * edgeLength * offsets.get(300)[0])
-		: (radius - 1) * offsets.get(210)[0] * edgeLength - (centerSize === 1 ? gridSize / 2 : 0);
-
-	let cursorY = cols
-		? 2 * edgeLength * offsets.get(300)[1] * radius
-		: ((radius - 1) * offsets.get(210)[1] - radius) * edgeLength;
+	let [cursorX, cursorY] = calculateTokenOffset(edgeLength, gridSize, cols, centerSize, radius, isHeavy);
 
 	/** @type {(angle: number) => void} */
 	const addPoint = angle => {
@@ -71,7 +62,7 @@ export function generateHexAuraPolygon(radius, { gridSize = 100, cols = false, c
 		// Whether the long side is on the top or bottom depends on the orientation of the token (whether it is "heavy")
 		let hexesPerSide = radius + centerRadius;
 		if ((centerSize % 2) === 0) {
-			hexesPerSide += +((i % 2) === (heavy ? 1 : 0));
+			hexesPerSide += +((i % 2) === (isHeavy ? 1 : 0));
 		}
 
 		// Actually draw the edges of the sub-hexes
@@ -86,6 +77,45 @@ export function generateHexAuraPolygon(radius, { gridSize = 100, cols = false, c
 	}
 
 	return points;
+}
+
+/**
+ * Works out the initial offset of the aura shape, based on the given settings.
+ * This allows placing the aura at the same x and y as the token, and it will line up correctly.
+ * @param {number} edgeLength
+ * @param {number} gridSize
+ * @param {boolean} cols
+ * @param {number} centerSize
+ * @param {number} radius
+ * @param {boolean} isHeavy
+ * @returns {[number, number]}
+ */
+export function calculateTokenOffset(edgeLength, gridSize, cols, centerSize, radius, isHeavy) {
+	// Honestly I don't understand the maths behind this at all, I determined this by drawing a bunch of debug points
+	// and measuring how far off it was in the different directions.
+	// Look I KNOW it's REALLY awful okay, but it works... I think... so we'll just leave it like this. 🙈
+
+	// First, work out the x,y of the first egde of the hex shape for a 0-radius aura (x0/y0). This accounts for "heavy"
+	// tokens. Then, work out how much we need to offset the initial points based on the radius of the aura (x1/y1).
+	if (cols) {
+		const x0 = (Math.floor(centerSize / 2) - (!isHeavy && centerSize % 2 === 0 ? 1 : 0)) * edgeLength * 1.5 + edgeLength * 0.5;
+		const y0 = 0;
+
+		const x1 = x0;
+		const y1 = y0 - radius * gridSize;
+
+		return [x1, y1];
+
+	} else {
+		const x0 = (Math.floor((centerSize - 1) / 2) + (isHeavy && centerSize % 2 === 0 ? 1 : 0)) * gridSize / 2;
+		const y0 = edgeLength / 2;
+
+		const x1 = x0 - (gridSize * 0.5 * radius);
+		const y1 = y0 - (edgeLength * 1.5 * radius);
+
+		return [x1, y1];
+	}
+
 }
 
 /**

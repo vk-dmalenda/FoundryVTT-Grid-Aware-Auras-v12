@@ -113,8 +113,7 @@ export class AuraGraphics extends PIXI.Graphics {
 		}
 
 		// Update heavy flag
-		// TODO: Foundry seems to render size 2 tokens as heavy and size 4s as not-heavy. Will need to support hex-size-support module.
-		const isHeavy = this.#token.document.width === 2;
+		const isHeavy = AuraGraphics.#isTokenHeavy(this.#token);
 		if (this.#isHeavy !== isHeavy) {
 			this.#isHeavy = isHeavy;
 			shouldRedraw = true;
@@ -146,7 +145,7 @@ export class AuraGraphics extends PIXI.Graphics {
 			centerSize: this.#centerSize,
 			gridSize: canvas.grid.size,
 			cols: [CONST.GRID_TYPES.HEXEVENQ, CONST.GRID_TYPES.HEXODDQ].includes(canvas.grid.type),
-			heavy: this.#isHeavy
+			isHeavy: this.#isHeavy
 		});
 
 		this.#configureFillStyle({ ...aura, fillTexture: texture });
@@ -207,5 +206,21 @@ export class AuraGraphics extends PIXI.Graphics {
 		} else { // NONE
 			this.beginFill(0x000000, 0);
 		}
+	}
+
+	/**
+	 * Determines if the given hex token is "heavy" (larger at the bottom/right than the top/left).
+	 * @param {Token} token
+	 */
+	static #isTokenHeavy(token) {
+		// If the Hex Size Support/Token Border Supplements module is active, use that to determine whether or not it's
+		// heavy. "Alt" is HSS's name for what we call "Heavy".
+		const hss = game.modules.get("hex-size-support");
+		if (hss?.active === true) {
+			return hss.api.isAltOrientation(token);
+		}
+
+		// Foundry seems to render size 2 tokens as heavy and size 4s as not-heavy.
+		return token.document.width === 2;
 	}
 }
