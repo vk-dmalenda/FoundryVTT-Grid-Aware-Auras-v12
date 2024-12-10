@@ -50,6 +50,12 @@ export class AuraConfig extends FormApplication {
 	activateListeners(html) {
 		super.activateListeners(html);
 		html.find("[data-action='close']").on("click", () => this.close());
+
+		// Prevent negative or decimals from being entered into the radius.
+		html.find("[name='radius']").on("input", e => {
+			const newValue = parseInt(e.target.value);
+			e.target.value = isNaN(newValue) ? 0 : Math.max(newValue, 0);
+		});
 	}
 
 	/** @override */
