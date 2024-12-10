@@ -1,7 +1,7 @@
 {
 	"name": "grid-aware-auras",
 	"title": "Grid-Aware Auras",
-	"description": "",
+	"description": "Module for attaching grid-aware auras to tokens.",
 	"version": "0.1.0",
 	"compatibility": {
 		"minimum": "11",
