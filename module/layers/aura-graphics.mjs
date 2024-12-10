@@ -19,9 +19,9 @@ export class AuraLayer extends CanvasLayer {
 	// Sorting within the PrimaryCanvasGroup works by the `elevation`, then by whether it is a token, then by whether it
 	// is a Drawing, then finally by the `sort`. We can then use the same elevation as tokens, then an extremely high
 	// sort value to sort over tiles, but below tokens.
-	// Terrain Height Tools uses -9999999998, so add 1 to ensure we render on top of the height map.
+	// Terrain Height Tools uses 9999999999, so add 1 to ensure we render on top of the height map.
 	get elevation() { return 0; }
-	get sort() { return -9999999997; }
+	get sort() { return 10000000000; }
 
 	/** @override */
 	async _draw() {
