@@ -32,7 +32,7 @@ export class AuraLayer extends CanvasLayer {
 	 * @param {Token} token
 	 */
 	updateToken(token) {
-		const auras = token.hasPreview
+		const auras = token.hasPreview || !canvas.grid.isHex
 			? []
 			: getTokenAuras(token).filter(a => a.enabled);
 

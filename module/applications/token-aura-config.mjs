@@ -34,7 +34,13 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 	const render = () => {
 		const auras = getCurrentAuras();
 		const flagPath = `flags.${MODULE_NAME}.${TOKEN_AURAS_FLAG}`;
-		tagContent.html(template({ auras, flagPath, LINE_TYPES, FILL_TYPES: CONST.DRAWING_FILL_TYPES }));
+		tagContent.html(template({
+			auras,
+			flagPath,
+			LINE_TYPES,
+			FILL_TYPES: CONST.DRAWING_FILL_TYPES,
+			showGridTypeWarning: !this.isPrototype && !canvas.grid.isHex
+		}));
 		tagContent.find(`[name="${flagPath}"]`).val(JSON.stringify(auras));
 		if (this._state === Application.RENDER_STATES.RENDERED)
 			this.setPosition();
