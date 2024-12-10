@@ -34,7 +34,7 @@ export class AuraLayer extends CanvasLayer {
 	updateToken(token) {
 		const auras = token.hasPreview || !canvas.grid.isHex
 			? []
-			: getTokenAuras(token).filter(a => a.enabled);
+			: getTokenAuras(token);
 
 		let tokenAuras = this.#tokenAuraGraphicsMap.get(token);
 		if (!tokenAuras) {
@@ -49,7 +49,7 @@ export class AuraLayer extends CanvasLayer {
 			this.removeChild(tokenAuras.pop());
 
 		for (let i = 0; i < auras.length; i++)
-			tokenAuras[i].update(auras[i]);
+			tokenAuras[i].update(auras[i], auras[i].enabled && token.isVisible);
 	}
 
 	/**
@@ -82,6 +82,13 @@ export class AuraGraphics extends PIXI.Graphics {
 
 	#centerSize = 1;
 
+	/**
+	 * `null` is only used when no renders have been done yet. When null, the animation is not played. This prevents a
+	 * flash when creating a token with an invisible aura.
+	 * @type {boolean | null}
+	 */
+	#isVisible = null;
+
 	constructor(token) {
 		super();
 		this.#token = token;
@@ -89,8 +96,10 @@ export class AuraGraphics extends PIXI.Graphics {
 
 	/**
 	 * Updates this aura graphic, and redraws it if required.
+	 * @param {Aura} aura
+	 * @param {boolean} isVisible
 	*/
-	update(aura) {
+	update(aura, isVisible) {
 		let shouldRedraw = false;
 
 		// Update position
@@ -122,6 +131,24 @@ export class AuraGraphics extends PIXI.Graphics {
 		// If a relevant property has changed, do a redraw
 		if (shouldRedraw) {
 			this.#redraw();
+		}
+
+		// Transition opacity
+		// We use null as the initial visibility. If the existing value is null, then we don't animate. This prevents
+		// a brief flash when a token is created with an invisible aura (e.g. if a token is dropped while holding 'Alt')
+		if (this.#isVisible !== isVisible) {
+			if (this.#isVisible === null) {
+				this.alpha = isVisible ? 1 : 0;
+			} else {
+				CanvasAnimation.animate([
+					{
+						parent: this,
+						attribute: "alpha",
+						to: isVisible ? 1 : 0
+					}
+				], { duration: 500 });
+			}
+			this.#isVisible = isVisible;
 		}
 	}
 
