@@ -39,7 +39,7 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 			flagPath,
 			LINE_TYPES,
 			FILL_TYPES: CONST.DRAWING_FILL_TYPES,
-			showGridTypeWarning: !this.isPrototype && !canvas.grid.isHex
+			showGridTypeWarning: !this.isPrototype && canvas.grid.type === CONST.GRID_TYPES.GRIDLESS
 		}));
 		tagContent.find(`[name="${flagPath}"]`).val(JSON.stringify(auras));
 		if (this._state === Application.RENDER_STATES.RENDERED)

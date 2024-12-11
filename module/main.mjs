@@ -1,8 +1,11 @@
 import { tokenConfigClose, tokenConfigRenderInner } from "./applications/token-aura-config.mjs";
 import { MODULE_NAME } from "./consts.mjs";
 import { AuraLayer } from "./layers/aura-graphics.mjs";
+import { registerSettings } from "./settings.mjs";
 
 Hooks.once("init", () => {
+	registerSettings();
+
 	CONFIG.Canvas.layers.gaaAuraLayer = { group: "primary", layerClass: AuraLayer };
 
 	// Wrap the default TokenConfig instead of using the renderTokenConfig hook because the latter does not run when the
@@ -11,9 +14,6 @@ Hooks.once("init", () => {
 
 	// When the TokenConfig closes, close any opened aura configs
 	Hooks.on("closeTokenConfig", tokenConfigClose);
-
-	// Wrap getSubmitData so that the object is saved as an array.
-	//libWrapper.register(MODULE_NAME, "TokenConfig.prototype._getSubmitData", tokenConfigGetSubmitData, libWrapper.WRAPPER);
 });
 
 Hooks.on("updateToken", tokenDocument => {

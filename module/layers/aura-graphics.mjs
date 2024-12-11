@@ -1,7 +1,9 @@
-import { LINE_TYPES } from "../consts.mjs";
+/** @import { Aura } from "../utils/aura.mjs"; */
+import { LINE_TYPES, MODULE_NAME, SQUARE_GRID_MODE_SETTING } from "../consts.mjs";
 import { auraDefaults, getTokenAuras } from "../utils/aura.mjs";
 import { generateHexAuraPolygon } from "../utils/hex-utils.mjs";
 import { drawDashedPath } from "../utils/pixi-utils.mjs";
+import { generateSquareAuraPolygon } from "../utils/square-utils.mjs";
 
 /**
  * Layer for managing grid-aware auras on a canvas.
@@ -30,9 +32,10 @@ export class AuraLayer extends CanvasLayer {
 	/**
 	 * Updates the Auras for a specific token.
 	 * @param {Token} token
+	 * @param {boolean} force Force a redraw, even if no aura properties have changed.
 	 */
-	updateToken(token) {
-		const auras = token.hasPreview || !canvas.grid.isHex
+	updateToken(token, force = false) {
+		const auras = token.hasPreview || canvas.grid.type === CONST.GRID_TYPES.GRIDLESS
 			? []
 			: getTokenAuras(token);
 
@@ -49,7 +52,7 @@ export class AuraLayer extends CanvasLayer {
 			this.removeChild(tokenAuras.pop());
 
 		for (let i = 0; i < auras.length; i++)
-			tokenAuras[i].update(auras[i], auras[i].enabled && token.isVisible);
+			tokenAuras[i].update(auras[i], auras[i].enabled && token.isVisible, force);
 	}
 
 	/**
@@ -65,6 +68,12 @@ export class AuraLayer extends CanvasLayer {
 
 		this.#tokenAuraGraphicsMap.delete(token);
 	}
+
+	/** Forces a redraw of all auras. */
+	redraw() {
+		for (const token of canvas.tokens.placeables)
+			this.updateToken(token, true);
+	}
 }
 
 /**
@@ -75,12 +84,20 @@ export class AuraGraphics extends PIXI.Graphics {
 	/** @type {Token} */
 	#token;
 
-	/** @type {import("../utils/aura.mjs").Aura} */
+	/** @type {Aura} */
 	#aura;
 
+	/**
+	 * For evenly-sized tokens on hex grids, whether that token is "heavy" (i.e. the largest part of the token is on
+	 * the bottom or the right).
+	 */
 	#isHeavy = false;
 
-	#centerSize = 1;
+	/** @type {number} */
+	#width;
+
+	/** @type {number} */
+	#height;
 
 	/**
 	 * `null` is only used when no renders have been done yet. When null, the animation is not played. This prevents a
@@ -98,20 +115,23 @@ export class AuraGraphics extends PIXI.Graphics {
 	 * Updates this aura graphic, and redraws it if required.
 	 * @param {Aura} aura
 	 * @param {boolean} isVisible
+	 * @param {boolean} force Force a redraw, even if no aura properties have changed.
 	*/
-	update(aura, isVisible) {
+	update(aura, isVisible, force = false) {
 		let shouldRedraw = false;
 
 		// Update position
 		this.x = this.#token.x;
 		this.y = this.#token.y;
 
-		// Update token size (only integer-sized tokens with equal width/height are supported)
-		const centerSize = this.#token.document.width !== this.#token.document.height || (this.#token.document.width % 1) !== 0
-			? 0
-			: this.#token.document.width;
-		if (this.#centerSize !== centerSize) {
-			this.#centerSize = centerSize;
+		// Update token size
+		if (this.#width !== this.#token.document.width) {
+			this.#width = this.#token.document.width;
+			shouldRedraw = true;
+		}
+
+		if (this.#height !== this.#token.document.height) {
+			this.#height = this.#token.document.height;
 			shouldRedraw = true;
 		}
 
@@ -129,7 +149,7 @@ export class AuraGraphics extends PIXI.Graphics {
 		}
 
 		// If a relevant property has changed, do a redraw
-		if (shouldRedraw) {
+		if (shouldRedraw || force) {
 			this.#redraw();
 		}
 
@@ -155,7 +175,15 @@ export class AuraGraphics extends PIXI.Graphics {
 	async #redraw() {
 		const aura = { ...auraDefaults, ...this.#aura };
 
-		if (aura.radius < 0 || this.#centerSize <= 0 || (this.#centerSize % 1) !== 0) {
+		// Negative radii are not supported
+		if (aura.radius < 0) {
+			this.clear();
+			return;
+		}
+
+		// Generate polygon points. If there are none, early exit
+		const points = this.#getPolygonPoints(aura);
+		if (points.length === 0) {
 			this.clear();
 			return;
 		}
@@ -166,14 +194,6 @@ export class AuraGraphics extends PIXI.Graphics {
 			: null;
 
 		this.clear();
-
-		// Generate polygon points
-		const points = generateHexAuraPolygon(aura.radius, {
-			centerSize: this.#centerSize,
-			gridSize: canvas.grid.size,
-			cols: [CONST.GRID_TYPES.HEXEVENQ, CONST.GRID_TYPES.HEXODDQ].includes(canvas.grid.type),
-			isHeavy: this.#isHeavy
-		});
 
 		this.#configureFillStyle({ ...aura, fillTexture: texture });
 
@@ -188,6 +208,45 @@ export class AuraGraphics extends PIXI.Graphics {
 		} else {
 			this.#configureLineStyle(aura);
 			this.drawPolygon(points);
+		}
+	}
+
+	/**
+	 * Gets the points of the shape polygon for the current state.
+	 * @param {Aura} aura
+	 */
+	#getPolygonPoints(aura) {
+		switch (canvas.grid.type) {
+			case CONST.GRID_TYPES.GRIDLESS: {
+				// Gridless not supported
+				return [];
+			}
+
+			case CONST.GRID_TYPES.SQUARE: {
+				return generateSquareAuraPolygon(aura.radius, {
+					gridSize: canvas.grid.size,
+					width: this.#width,
+					height: this.#height,
+					mode: game.settings.get(MODULE_NAME, SQUARE_GRID_MODE_SETTING)
+				});
+			}
+
+			default: { // Any hex
+				const centerSize = this.#width !== this.#height || (this.#width % 1) !== 0
+					? 0
+					: this.#width;
+
+				// Hex only supports tokens with equal width/height and integer size
+				if (centerSize <= 0 || (centerSize % 1) !== 0)
+					return [];
+
+				return generateHexAuraPolygon(aura.radius, {
+					centerSize,
+					gridSize: canvas.grid.size,
+					cols: [CONST.GRID_TYPES.HEXEVENQ, CONST.GRID_TYPES.HEXODDQ].includes(canvas.grid.type),
+					isHeavy: this.#isHeavy
+				});
+			}
 		}
 	}
 

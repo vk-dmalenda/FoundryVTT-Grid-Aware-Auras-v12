@@ -4,6 +4,13 @@
 		"LineType": "Line Type",
 		"LineTypeDashed": "Dashed",
 		"LineTypeNone": "None",
-		"LineTypeSolid": "Solid"
+		"LineTypeSolid": "Solid",
+		"SquareGridModeEquidistant": "Equidistant (1/1/1)",
+		"SquareGridModeAlternating": "Alternating (1/2/1)",
+		"SquareGridModeManhattan": "Manhattan"
+	},
+	"SETTINGS": {
+		"SquareGridMode.Name": "Square Grid Mode",
+		"SquareGridMode.Hint": "Coordinate system to determine the shape of the aura when using square grids."
 	}
 }
