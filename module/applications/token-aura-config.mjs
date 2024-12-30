@@ -1,9 +1,9 @@
-/** @import { Aura } from ("../utils/aura.mjs"); */
+/** @import { AuraConfig } from "../utils/aura.mjs"; */
 import { LINE_TYPES, MODULE_NAME, TOKEN_AURAS_FLAG } from "../consts.mjs";
 import { createAura, getTokenAuras } from "../utils/aura.mjs";
-import { AuraConfig } from "./aura-config.mjs";
+import { AuraConfigApplication } from "./aura-config.mjs";
 
-const openAuraConfigs = Symbol("openAuraConfigs");
+const openAuraConfigApps = Symbol("openAuraConfigApps");
 
 /**
  * Wrapper for the TokenConfig._renderInner function to add the GAA aura config to it.
@@ -14,8 +14,8 @@ const openAuraConfigs = Symbol("openAuraConfigs");
 export async function tokenConfigRenderInner(wrapped, ...args) {
 	const html = await wrapped(...args);
 
-	/** @type {Map<string, AuraConfig>} */
-	this[openAuraConfigs] = this[openAuraConfigs] ?? new Map();
+	/** @type {Map<string, AuraConfigApplication>} */
+	this[openAuraConfigApps] = this[openAuraConfigApps] ?? new Map();
 
 	// Insert a tab item for the new control
 	html.find("> nav.sheet-tabs").append(`
@@ -64,13 +64,13 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 
 	/**
 	 * Opens a dialog and begins editing the given Aura.
-	 * @param {Aura} aura
+	 * @param {AuraConfig} aura
 	 */
 	const editAura = aura => {
-		if (this[openAuraConfigs].has(aura.id)) return;
+		if (this[openAuraConfigApps].has(aura.id)) return;
 
-		const app = new AuraConfig(aura);
-		this[openAuraConfigs].set(aura.id, app);
+		const app = new AuraConfigApplication(aura);
+		this[openAuraConfigApps].set(aura.id, app);
 
 		app.onChange = newAura => {
 			this._previewChanges({
@@ -80,7 +80,7 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 		};
 
 		app.onClose = () => {
-			this[openAuraConfigs].delete(aura.id);
+			this[openAuraConfigApps].delete(aura.id);
 		};
 
 		app.render(true);
@@ -124,8 +124,8 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
  * @param {TokenConfig} tokenConfig
  */
 export function tokenConfigClose(tokenConfig) {
-	/** @type {Map<string, AuraConfig>} */
-	const auraConfigs = tokenConfig[openAuraConfigs];
+	/** @type {Map<string, AuraConfigApplication>} */
+	const auraConfigs = tokenConfig[openAuraConfigApps];
 	if (!auraConfigs) return;
 
 	for (const auraConfig of auraConfigs.values())

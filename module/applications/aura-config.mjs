@@ -1,7 +1,7 @@
 /** @import { Aura } from ("../utils/aura.mjs"); */
 import { LINE_TYPES, MODULE_NAME } from "../consts.mjs";
 
-export class AuraConfig extends FormApplication {
+export class AuraConfigApplication extends FormApplication {
 
 	/** @type {((aura: Aura) => void) | undefined} */
 	onChange;

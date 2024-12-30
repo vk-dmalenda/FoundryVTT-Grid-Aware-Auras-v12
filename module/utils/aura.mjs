@@ -1,7 +1,7 @@
 import { LINE_TYPES, MODULE_NAME, TOKEN_AURAS_FLAG } from "../consts.mjs";
 
 /**
- * @typedef {Object} Aura
+ * @typedef {Object} AuraConfig
  * @property {string} id
  * @property {string} name
  * @property {boolean} enabled
@@ -23,14 +23,14 @@ import { LINE_TYPES, MODULE_NAME, TOKEN_AURAS_FLAG } from "../consts.mjs";
 /**
  * Gets the auras that are present on the given token.
  * @param {Token | TokenDocument} token
- * @return {Aura[]}
+ * @return {AuraConfig[]}
  */
 export function getTokenAuras(token) {
 	const tokenDoc = token instanceof Token ? token.document : token;
 	return tokenDoc.getFlag(MODULE_NAME, TOKEN_AURAS_FLAG) ?? [];
 }
 
-/** @type {Omit<Aura, "id">} */
+/** @type {Omit<AuraConfig, "id">} */
 export const auraDefaults = {
 	name: "New Aura",
 	enabled: true,
@@ -49,7 +49,7 @@ export const auraDefaults = {
 	fillTextureScale: { x: 100, y: 100 }
 };
 
-/** @returns {Aura} */
+/** @returns {AuraConfig} */
 export function createAura() {
 	return { ...auraDefaults, id: foundry.utils.randomID() };
 }
