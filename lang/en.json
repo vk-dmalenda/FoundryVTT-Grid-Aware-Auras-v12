@@ -1,5 +1,8 @@
 {
 	"GRIDAWAREAURAS": {
+		"AuraDisplayCustom": "Custom",
+		"AuraDisplayOwnerTurn": "Turn for Anyone",
+		"AuraDisplayTurn": "Turn for Owner",
 		"Auras": "Auras",
 		"LineType": "Line Type",
 		"LineTypeDashed": "Dashed",

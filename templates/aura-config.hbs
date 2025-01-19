@@ -103,54 +103,67 @@
 
     <!-- Visibility tab -->
     <div class="tab" data-tab="visibility">
-        <p>Specify under which conditions the aura should be visible to owners and non-owners. If ANY applicable state is checked, the aura will be visible.</p>
 
-        <div class="visibility-grid">
-            <div class="visibility-row">
-                <span class="owner text-bold">Owner</span>
-                <span class="nonowner text-bold">Non-owners</span>
-            </div>
+        <div class="form-group">
+			<label>Display Aura</label>
+			<select name="visibilityMode">
+                {{selectOptions visibilityModes selected=visibilityMode localize=true}}
+            </select>
+		</div>
 
-            <div class="visibility-row">
-                <span class="title">Default</span>
-                <p class="hint">When none of the below states are applicable.</p>
-                <input type="checkbox" class="owner" name="ownerVisibility.default" {{checked object.ownerVisibility.default}}>
-                <input type="checkbox" class="nonowner" name="nonOwnerVisibility.default" {{checked object.nonOwnerVisibility.default}}>
-            </div>
+        <fieldset name="visibilityCustom" {{#unless (eq visibilityMode "CUSTOM")}}class="disabled"{{/unless}} style="padding-block-end: 0;">
+            <legend>Custom</legend>
 
-            <div class="visibility-row">
-                <span class="title">Hovered</span>
-                <input type="checkbox" class="owner" name="ownerVisibility.hovered" {{checked object.ownerVisibility.hovered}}>
-                <input type="checkbox" class="nonowner" name="nonOwnerVisibility.hovered" {{checked object.nonOwnerVisibility.hovered}}>
-            </div>
+            <p class="hint" style="margin-top: 0;">
+                Specify under which states the aura should be visible to owners and non-owners.
+                When multiple states are appliable, the aura is visible when ANY applicable state is checked.
+            </p>
 
-            <div class="visibility-row">
-                <span class="title">Selected</span>
-                <input type="checkbox" class="owner" name="ownerVisibility.controlled" {{checked object.ownerVisibility.controlled}}>
-                <input type="checkbox" class="nonowner" disabled>
-            </div>
+            <div class="visibility-grid">
+                <div class="visibility-row">
+                    <span class="owner text-bold">Owner</span>
+                    <span class="nonowner text-bold">Non-owners</span>
+                </div>
 
-            <div class="visibility-row">
-                <span class="title">Dragging</span>
-                <p class="hint">Visible to a user when they are dragging token.</p>
-                <input type="checkbox" class="owner" name="ownerVisibility.dragging" {{checked object.ownerVisibility.dragging}}>
-                <input type="checkbox" class="nonowner" disabled>
-            </div>
+                <div class="visibility-row">
+                    <span class="title">Default</span>
+                    <p class="hint">When none of the below states are applicable.</p>
+                    <input type="checkbox" class="owner" name="ownerVisibility.default" {{checked object.ownerVisibility.default}}>
+                    <input type="checkbox" class="nonowner" name="nonOwnerVisibility.default" {{checked object.nonOwnerVisibility.default}}>
+                </div>
 
-            <div class="visibility-row">
-                <span class="title">Targeted</span>
-                <p class="hint">Visible to a user when they are targeting the token.</p>
-                <input type="checkbox" class="owner" name="ownerVisibility.targeted" {{checked object.ownerVisibility.targeted}}>
-                <input type="checkbox" class="nonowner" name="nonOwnerVisibility.targeted" {{checked object.nonOwnerVisibility.targeted}}>
-            </div>
+                <div class="visibility-row">
+                    <span class="title">Hovered</span>
+                    <input type="checkbox" class="owner" name="ownerVisibility.hovered" {{checked object.ownerVisibility.hovered}}>
+                    <input type="checkbox" class="nonowner" name="nonOwnerVisibility.hovered" {{checked object.nonOwnerVisibility.hovered}}>
+                </div>
 
-            <div class="visibility-row">
-                <span class="title">Turn</span>
-                <p class="hint">When the token has its turn in the combat tracker.</p>
-                <input type="checkbox" class="owner" name="ownerVisibility.turn" {{checked object.ownerVisibility.turn}}>
-                <input type="checkbox" class="nonowner" name="nonOwnerVisibility.turn" {{checked object.nonOwnerVisibility.turn}}>
+                <div class="visibility-row">
+                    <span class="title">Controlled/Selected</span>
+                    <input type="checkbox" class="owner" name="ownerVisibility.controlled" {{checked object.ownerVisibility.controlled}}>
+                    <input type="checkbox" class="nonowner" disabled>
+                </div>
+
+                <div class="visibility-row">
+                    <span class="title">Dragging</span>
+                    <input type="checkbox" class="owner" name="ownerVisibility.dragging" {{checked object.ownerVisibility.dragging}}>
+                    <input type="checkbox" class="nonowner" disabled>
+                </div>
+
+                <div class="visibility-row">
+                    <span class="title">Targeted</span>
+                    <input type="checkbox" class="owner" name="ownerVisibility.targeted" {{checked object.ownerVisibility.targeted}}>
+                    <input type="checkbox" class="nonowner" name="nonOwnerVisibility.targeted" {{checked object.nonOwnerVisibility.targeted}}>
+                </div>
+
+                <div class="visibility-row">
+                    <span class="title">Turn</span>
+                    <p class="hint">When the token has its turn in the combat tracker.</p>
+                    <input type="checkbox" class="owner" name="ownerVisibility.turn" {{checked object.ownerVisibility.turn}}>
+                    <input type="checkbox" class="nonowner" name="nonOwnerVisibility.turn" {{checked object.nonOwnerVisibility.turn}}>
+                </div>
             </div>
-        </div>
+        </fieldset>
     </div>
 
 	<hr/>

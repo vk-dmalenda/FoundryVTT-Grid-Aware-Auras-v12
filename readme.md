@@ -19,12 +19,28 @@ Alternatively, paste this URL into the 'Manifest URL' field of the 'Install Modu
 ## Usage
 
 1. First open a token configuration by using the cog button when right-clicking a token on the scene, or open the prototype token configuration for an actor.
-2. Then, navigate to the new "Auras" tab, then click the `+` button to create a new aura. You can then set the size of the aura, as well as how you want it to appear to everyone. You can add as many auras as you want!
+2. Then, navigate to the new "Auras" tab, then click the `+` button to create a new aura. You can then set the size of the aura, how you want it to appear visually, and [when it should be visible](#visibility). You can add as many auras as you want!
 3. If you need to edit an existing aura, you can click the cog button next to it to edit it. You can also quickly toggle whether that aura is visible by clicking the eye icon.
 4. Finally, just click the "Update Token" button.
 
 > [!NOTE]
 > For hex grids, GAA only supports cases where the width and height of the token are identical. If this is not the case, the aura will not be shown. Square grids do not have this restriction.
+
+### Visibility
+
+By default, newly created auras are visible to everyone so long as the token itself is visible. This can be changed in the 'Visibility' tab of the aura's config.
+
+There are some options you can choose from in the dropdown, similar to the Foundry's default "Display Bar" option for token resource bars.
+
+You can also fine-tune the visibility conditions, though this is a little more advanced:
+
+![Visibility config](./docs/img/visibility-matrix.png)
+
+The custom setting enables the checkbox table below the dropdown. This table shows a list of 'states' in the first column, followed by a checkbox for owner and non-owner visibility.
+
+GAA computes visibility by checking which states are applicable, determining whether you are an owner of the token or not, then looking up whether the checkbox is ticked; If so, then the aura is visible. If there are multiple applicable states (for example targeted AND hovered), then the aura will show if ANY of the appliable states are ticked. The so-called 'Default' state is slightly special in that it applies ONLY when there are no other applicable states (i.e. when you are NOT hovering, and NOT targeting, and NOT the token's turn etc.).
+
+In the above example, the aura is visible to a user when that user is hovering the token; OR when the token is selected/controlled (only possible by it's owner); OR if the user owns the token and it is that token's turn in the combat tracker.
 
 ### Square Grids
 
@@ -43,7 +59,6 @@ _(Numbers are for illustrative purposes only)_
 Features that I will be looking to add to Grid-Aware Auras in future (in rough order of priority):
 
 - [ ] Hooks for when other tokens enter/leave an aura (e.g. to allow applying active effects)
-- [ ] Per-aura option to only show it under certain circumstances (e.g. only when token selected, only when dragging, only owner, etc.)
 - [ ] Formal API for creating/updating/deleting auras on tokens.
 - [ ] Allow auras on items, which will get added to the token when owned by that token's actor.
 - [ ] Setting auras by active effects (e.g. allowing effects to alter the range of an aura).

@@ -48,7 +48,7 @@ export const auraVisibilityDefaults = {
 	controlled: true,
 	dragging: true,
 	targeted: true,
-	turn: true,
+	turn: true
 };
 
 /** @type {Omit<AuraConfig, "id">} */
@@ -85,3 +85,120 @@ export function createAura() {
 export function getAura(config) {
 	return foundry.utils.mergeObject(auraDefaults, config, { inplace: false });
 }
+
+// Some default visibility presets
+/** @type {Record<import("../consts.mjs").AURA_VISIBILITY_MODES, { owner: VisibilityConfig; nonOwner: VisibilityConfig; }>} */
+export const auraVisibilityModeMatrices = {
+	"ALWAYS": {
+		owner: {
+			default: true,
+			hovered: true,
+			controlled: true,
+			dragging: true,
+			targeted: true,
+			turn: true
+		},
+		nonOwner: {
+			default: true,
+			hovered: true,
+			targeted: true,
+			turn: true
+		}
+	},
+	"OWNER": {
+		owner: {
+			default: true,
+			hovered: true,
+			controlled: true,
+			dragging: true,
+			targeted: true,
+			turn: true
+		},
+		nonOwner: {
+			default: false,
+			hovered: false,
+			targeted: false,
+			turn: false
+		}
+	},
+	"HOVER": {
+		owner: {
+			default: false,
+			hovered: true,
+			controlled: false,
+			dragging: false,
+			targeted: false,
+			turn: false
+		},
+		nonOwner: {
+			default: false,
+			hovered: true,
+			targeted: false,
+			turn: false
+		}
+	},
+	"OWNER_HOVER": {
+		owner: {
+			default: false,
+			hovered: true,
+			controlled: false,
+			dragging: false,
+			targeted: false,
+			turn: false
+		},
+		nonOwner: {
+			default: false,
+			hovered: false,
+			targeted: false,
+			turn: false
+		}
+	},
+	"CONTROL": {
+		owner: {
+			default: false,
+			hovered: false,
+			controlled: true,
+			dragging: false,
+			targeted: false,
+			turn: false
+		},
+		nonOwner: {
+			default: false,
+			hovered: false,
+			targeted: false,
+			turn: false
+		}
+	},
+	"TURN": {
+		owner: {
+			default: false,
+			hovered: false,
+			controlled: false,
+			dragging: false,
+			targeted: false,
+			turn: true
+		},
+		nonOwner: {
+			default: false,
+			hovered: false,
+			targeted: false,
+			turn: true
+		}
+	},
+	"OWNER_TURN": {
+		owner: {
+			default: false,
+			hovered: false,
+			controlled: false,
+			dragging: false,
+			targeted: false,
+			turn: true
+		},
+		nonOwner: {
+			default: false,
+			hovered: false,
+			targeted: false,
+			turn: false
+		}
+	},
+};

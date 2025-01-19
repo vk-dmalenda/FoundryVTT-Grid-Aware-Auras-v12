@@ -6,6 +6,10 @@
 	border-top: 2px groove #FFFFFF;
 }
 
+.grid-aware-auras-aura-config .visibility-grid {
+	margin: 0 -0.625em;
+}
+
 .grid-aware-auras-aura-config .visibility-row {
 	display: grid;
 	grid-template-columns: 1fr repeat(2, 85px);
@@ -38,6 +42,12 @@
 .grid-aware-auras-aura-config .visibility-row > .nonowner {
 	grid-area: nonowner;
 	justify-self: center;
+}
+
+/* Use a custom style to emulate disabled because we still want to include the inputs in the FormData */
+.grid-aware-auras-aura-config fieldset.disabled {
+	pointer-events: none;
+	opacity: 0.4;
 }
 
 /* ---------------------- */
