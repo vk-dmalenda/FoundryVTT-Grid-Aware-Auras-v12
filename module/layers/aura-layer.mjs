@@ -1,6 +1,6 @@
 /** @import { AuraConfig } from "../utils/aura.mjs"; */
 import { ENTER_AURA_HOOK, LEAVE_AURA_HOOK, LINE_TYPES, MODULE_NAME, SQUARE_GRID_MODE_SETTING } from "../consts.mjs";
-import { auraDefaults, getTokenAuras } from "../utils/aura.mjs";
+import { auraDefaults, auraVisibilityDefaults, getTokenAuras } from "../utils/aura.mjs";
 import { generateHexAuraPolygon } from "../utils/hex-utils.mjs";
 import { drawDashedPath } from "../utils/pixi-utils.mjs";
 import { generateSquareAuraPolygon } from "../utils/square-utils.mjs";
@@ -91,7 +91,7 @@ export class AuraLayer extends CanvasLayer {
 		}
 
 		for (let i = 0; i < auras.length; i++) {
-			tokenAuras[i].update(auras[i], auras[i].enabled && token.isVisible, force);
+			tokenAuras[i].update(auras[i], { force });
 		}
 
 		// Test and call hooks
@@ -274,10 +274,10 @@ export class Aura {
 	/**
 	 * Updates this aura graphic, and redraws it if required.
 	 * @param {AuraConfig} config
-	 * @param {boolean} isVisible
-	 * @param {boolean} force Force a redraw, even if no aura properties have changed.
+	 * @param {Object} [options]
+	 * @param {boolean} [options.force] Force a redraw, even if no aura properties have changed.
 	*/
-	update(config, isVisible, force = false) {
+	update(config, { force = false } = {}) {
 		let shouldRedraw = false;
 
 		// Update position
@@ -316,6 +316,7 @@ export class Aura {
 		// Transition opacity
 		// We use null as the initial visibility. If the existing value is null, then we don't animate. This prevents
 		// a brief flash when a token is created with an invisible aura (e.g. if a token is dropped while holding 'Alt')
+		const isVisible = this.#getVisibility();
 		if (this.#isVisible !== isVisible) {
 			if (this.#isVisible === null) {
 				this.#graphics.alpha = isVisible ? 1 : 0;
@@ -326,7 +327,7 @@ export class Aura {
 						attribute: "alpha",
 						to: isVisible ? 1 : 0
 					}
-				], { duration: 500 });
+				], { duration: 200 });
 			}
 			this.#isVisible = isVisible;
 		}
@@ -386,6 +387,58 @@ export class Aura {
 			this.#configureLineStyle(config);
 			this.#graphics.drawPolygon(points);
 		}
+	}
+
+	/**
+	 * Determines whether this aura should be visible, based on it's config and assigned token.
+	 */
+	#getVisibility() {
+		// If token is hidden or set as invisible in config, then it is definitely not visible
+		if (!this.#token.visible || !this.#config.enabled) {
+			return false;
+		}
+
+		// Otherwise, determine the visibility based on either ownerVisibility or nonOwnerVisibility, depending on the
+		// user's relationship to the token.
+		//
+		// For all flags other than default (e.g. targeted, hovered, etc.), we see if any of them are relevant now.
+		// If any of the relevant ones are true, then the aura should be visible (OR logic).
+		// Otherwise, if there are no relevant states (i.e. the token is not targeted AND not hovered, etc.) then use
+		// the default visibility.
+		// We use mergeObject so that if new states are added in future, they have their defaults handled correctly.
+		const visibility = foundry.utils.mergeObject(
+			auraVisibilityDefaults,
+			this.#token.isOwner ? this.#config.ownerVisibility : this.#config.nonOwnerVisibility,
+			{ inplace: false });
+
+		let hasRelevantNonDefaultState = false;
+
+		if (this.#token.hover) {
+			if (visibility.hovered) return true;
+			hasRelevantNonDefaultState = true;
+		}
+
+		if (this.#token.controlled) {
+			if (visibility.controlled) return true;
+			hasRelevantNonDefaultState = true;
+		}
+
+		if (this.#token.isPreview) {
+			if (visibility.dragging) return true;
+			hasRelevantNonDefaultState = true;
+		}
+
+		if (this.#token.isTargeted) {
+			if (visibility.targeted) return true;
+			hasRelevantNonDefaultState = true;
+		}
+
+		if (this.#token.inCombat && this.#token.combatant?.combat?.current?.tokenId === this.#token.id) {
+			if (visibility.turn) return true;
+			hasRelevantNonDefaultState = true;
+		}
+
+		return !hasRelevantNonDefaultState && visibility.default;
 	}
 
 	/**

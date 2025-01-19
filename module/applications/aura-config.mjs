@@ -1,5 +1,6 @@
 /** @import { Aura } from ("../utils/aura.mjs"); */
 import { LINE_TYPES, MODULE_NAME } from "../consts.mjs";
+import { getAura } from "../utils/aura.mjs";
 
 export class AuraConfigApplication extends FormApplication {
 
@@ -36,6 +37,9 @@ export class AuraConfigApplication extends FormApplication {
 	/** @override */
 	async getData(options = {}) {
 		const data = await super.getData(options);
+
+		// Apply default values for fields if they are unset
+		data.object = getAura(this.object);
 
 		data.lineTypes = Object.fromEntries(Object.entries(LINE_TYPES)
 			.map(([name, value]) => [value, `GRIDAWAREAURAS.LineType${name.titleCase()}`]));

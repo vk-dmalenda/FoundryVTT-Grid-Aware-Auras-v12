@@ -1,8 +1,48 @@
+/* ------------------ */
+/* Aura Config Window */
+/* ------------------ */
 .grid-aware-auras-aura-config hr {
 	width: 100%;
 	border-top: 2px groove #FFFFFF;
 }
 
+.grid-aware-auras-aura-config .visibility-row {
+	display: grid;
+	grid-template-columns: 1fr repeat(2, 85px);
+	grid-template-rows: min-content min-content;
+	grid-template-areas:
+		"title owner nonowner"
+		"hint hint hint";
+	align-items: center;
+	padding: 4px 8px;
+}
+
+.grid-aware-auras-aura-config .visibility-row:nth-child(even) {
+	background-color: rgba(0 0 0 / 5%);
+}
+
+.grid-aware-auras-aura-config .visibility-row > .hint {
+	grid-area: hint;
+}
+
+.grid-aware-auras-aura-config .visibility-row > .title {
+	grid-area: title;
+	font-weight: bold;
+}
+
+.grid-aware-auras-aura-config .visibility-row > .owner {
+	grid-area: owner;
+	justify-self: center;
+}
+
+.grid-aware-auras-aura-config .visibility-row > .nonowner {
+	grid-area: nonowner;
+	justify-self: center;
+}
+
+/* ---------------------- */
+/* Token Config Aura List */
+/* ---------------------- */
 .grid-aware-auras-list {
 	border: none;
 	background: none;
@@ -32,6 +72,10 @@
 /* ------- */
 /* Utility */
 /* ------- */
+.text-bold {
+	font-weight: bold;
+}
+
 .text-center {
 	text-align: center;
 }
