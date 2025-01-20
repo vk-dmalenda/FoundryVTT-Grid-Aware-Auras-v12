@@ -201,4 +201,20 @@ export const auraVisibilityModeMatrices = {
 			turn: false
 		}
 	},
+	"NONE": {
+		owner: {
+			default: false,
+			hovered: false,
+			controlled: false,
+			dragging: false,
+			targeted: false,
+			turn: false
+		},
+		nonOwner: {
+			default: false,
+			hovered: false,
+			targeted: false,
+			turn: false
+		}
+	}
 };

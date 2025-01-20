@@ -30,5 +30,6 @@ export const AURA_VISIBILITY_MODES = /** @type {const} */ ({
 	CONTROL: "TOKEN.DISPLAY_CONTROL",
 	TURN: "GRIDAWAREAURAS.AuraDisplayOwnerTurn",
 	OWNER_TURN: "GRIDAWAREAURAS.AuraDisplayTurn",
+	NONE: "TOKEN.DISPLAY_NONE",
 	CUSTOM: "GRIDAWAREAURAS.AuraDisplayCustom"
 });

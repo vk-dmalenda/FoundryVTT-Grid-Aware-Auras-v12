@@ -21,10 +21,10 @@
 		{{#each auras as |aura idx|}}
 			<tr data-aura-id="{{aura.id}}">
 				<td>
-					<label class="icon-checkbox" style="width: 18px">
+					<label class="icon-checkbox" data-tooltip="Enable/disable aura" style="width: 18px">
 						<input type="checkbox" data-action="grid-aware-auras-toggle-enabled" {{checked aura.enabled}}>
-						<i class="far fa-eye-slash icon-unchecked"></i>
-						<i class="fas fa-eye icon-checked"></i>
+						<i class="fas fa-xmark icon-unchecked"></i>
+						<i class="fas fa-check icon-checked"></i>
 					</label>
 				</td>
 				<td>
