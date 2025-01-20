@@ -11,20 +11,27 @@ Hooks.once("init", () => {
 	// Wrap the default TokenConfig instead of using the renderTokenConfig hook because the latter does not run when the
 	// config is re-rendered, and it can cause the tab to disappear :(
 	libWrapper.register(MODULE_NAME, "TokenConfig.prototype._renderInner", tokenConfigRenderInner, libWrapper.WRAPPER);
-
-	Hooks.on("gridAwareAuras.enterAura", (t1, t2, aura, args) => console.log(`${t1.name} entered ${t2.name}'s ${aura.name} aura.`, args));
-	Hooks.on("gridAwareAuras.leaveAura", (t1, t2, aura, args) => console.log(`${t1.name} left ${t2.name}'s ${aura.name} aura.`, args));
 });
 
 Hooks.on("updateToken", (tokenDocument) => {
 	const token = game.canvas.tokens.get(tokenDocument.id);
-	if (token) AuraLayer.current?._updateToken(token);
+	if (token && AuraLayer.current) {
+		AuraLayer.current._updateToken(token);
+		AuraLayer.current._testCollisionsForToken(token);
+	}
 })
 
 // When token moves or is made visible/hidden, update the aura position and visibility
 Hooks.on("refreshToken", (token, { refreshPosition, refreshVisibility }) => {
-	if (refreshPosition || refreshVisibility)
+	if (refreshPosition || refreshVisibility) {
 		AuraLayer.current?._updateToken(token);
+
+		// If the token is a drag preview, then we test collisions (using the position of the preview). We don't test
+		// collisions for non-preview tokens, because then it constantly fires when the token is animating for example.
+		if (token.isPreview) {
+			AuraLayer.current?._testCollisionsForToken(token, { useActualPosition: true });
+		}
+	}
 });
 
 // When token is hovered/unhovered, we need to check aura visibility

@@ -54,6 +54,9 @@ When dealing with square grids, there are different ways of handling diagonals. 
 
 _(Numbers are for illustrative purposes only)_
 
+## See Also
+- [API Reference (for macros and modules)](./docs/api.md)
+
 ## Roadmap
 
 Features that I will be looking to add to Grid-Aware Auras in future (in rough order of priority):

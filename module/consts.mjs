@@ -5,8 +5,7 @@ export const TOKEN_AURAS_FLAG = "auras";
 export const SQUARE_GRID_MODE_SETTING = "squareGridMode";
 
 const HOOK_PREFIX = "gridAwareAuras";
-export const ENTER_AURA_HOOK = `${HOOK_PREFIX}.enterAura`;
-export const LEAVE_AURA_HOOK = `${HOOK_PREFIX}.leaveAura`;
+export const ENTER_LEAVE_AURA_HOOK = `${HOOK_PREFIX}.enterLeaveAura`;
 
 /** @enum {number} */
 export const LINE_TYPES = /** @type {const} */ ({

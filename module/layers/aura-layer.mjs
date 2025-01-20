@@ -1,5 +1,5 @@
 /** @import { AuraConfig } from "../utils/aura.mjs"; */
-import { ENTER_AURA_HOOK, LEAVE_AURA_HOOK, LINE_TYPES, MODULE_NAME, SQUARE_GRID_MODE_SETTING } from "../consts.mjs";
+import { ENTER_LEAVE_AURA_HOOK, LINE_TYPES, MODULE_NAME, SQUARE_GRID_MODE_SETTING } from "../consts.mjs";
 import { auraDefaults, auraVisibilityDefaults, getTokenAuras } from "../utils/aura.mjs";
 import { generateHexAuraPolygon } from "../utils/hex-utils.mjs";
 import { drawDashedPath } from "../utils/pixi-utils.mjs";
@@ -44,8 +44,9 @@ export class AuraLayer extends CanvasLayer {
 		// also becomes a LOT more difficult to track whether isInit should be true or false. Doing it this way solves
 		// both problems.
 		canvas.app.ticker.addOnce(() => {
-			this._redraw({ isInit: true });
 			this.#isInitialised = true;
+			this._redraw();
+			this.#testCollisions({ isInit: true }); // initial collisions between ALL auras
 		}, undefined, PIXI.UPDATE_PRIORITY.UTILITY);
 
 		// Reset state
@@ -59,21 +60,21 @@ export class AuraLayer extends CanvasLayer {
 	 * @param {TokenDocument} token
 	 * @param {Object} [options]
 	 * @param {boolean} [options.force] Force a redraw, even if no aura properties have changed.
-	 * @param {boolean} [options.isInit] Is this the first run?
 	 */
-	_updateToken(token, { force = false, isInit = false } = {}) {
+	_updateToken(token, { force = false } = {}) {
 		// Tokens may not all be ready yet
-		if (!this.#isInitialised && !isInit)
+		if (!this.#isInitialised)
 			return;
 
 		const auras = token.hasPreview || canvas.grid.type === CONST.GRID_TYPES.GRIDLESS
 			? []
 			: getTokenAuras(token);
 
-		let tokenAuras = this.#tokenAurasMap.get(token.id);
+		const tokenKey = this.#getTokenMapKey(token);
+		let tokenAuras = this.#tokenAurasMap.get(tokenKey);
 		if (!tokenAuras) {
 			tokenAuras = [];
-			this.#tokenAurasMap.set(token.id, tokenAuras);
+			this.#tokenAurasMap.set(tokenKey, tokenAuras);
 		}
 
 		// If there are fewer Aura instances for the token than are defined in the token config, add more
@@ -93,10 +94,6 @@ export class AuraLayer extends CanvasLayer {
 		for (let i = 0; i < auras.length; i++) {
 			tokenAuras[i].update(auras[i], { force });
 		}
-
-		// Test and call hooks
-		this.#testCollisions({ targetToken: token, isInit }); // Test this token against other tokens' auras
-		this.#testCollisions({ sourceToken: token, isInit }); // Test other tokens against this token's auras
 	}
 
 	/**
@@ -107,30 +104,28 @@ export class AuraLayer extends CanvasLayer {
 		// Fire all leave events for the token and any other tokens in the destroyed token's auras IF we're not in the
 		// process of tearing down the scene.
 		if (!this._isTearingDown) {
-			this.#testCollisions({ sourceToken: token, destroyToken: token });
-			this.#testCollisions({ targetToken: token, destroyToken: token });
+			this._testCollisionsForToken(token, { destroyToken: true });
 		}
 
 		// Clean up auras belonging to this token
-		const auraGraphics = this.#tokenAurasMap.get(token.id);
+		const tokenKey = this.#getTokenMapKey(token);
+		const auraGraphics = this.#tokenAurasMap.get(tokenKey);
 		if (auraGraphics) {
 			for (const auraGraphic of auraGraphics) {
 				this.removeChild(auraGraphic.graphics);
 				auraGraphic.destroy();
 			}
 
-			this.#tokenAurasMap.delete(token.id);
+			this.#tokenAurasMap.delete(tokenKey);
 		}
 	}
 
 	/**
 	 * Forces a redraw of all auras.
-	 * @param {Object} [options]
-	 * @param {boolean} [options.isInit] Is this the first run?
 	 */
-	_redraw({ isInit = false } = {}) {
+	_redraw() {
 		for (const token of canvas.tokens.placeables)
-			this._updateToken(token, { force: true, isInit });
+			this._updateToken(token, { force: true });
 	}
 
 	/**
@@ -139,29 +134,37 @@ export class AuraLayer extends CanvasLayer {
 	 * @param {Token} [options.sourceToken] If provided, only tests the auras from this token. If not, tests all auras.
 	 * @param {Token} [options.targetToken] If provided, only tests this token against the auras. If not, tests all tokens.
 	 * @param {Token} [options.destroyToken] If provided, assumes that any tests involving this token are non-entered.
+	 * @param {boolean} [options.useActualPosition] If false (default), uses the position of the token document. If true,
+	 * uses the actual position of the token on the canvas.
 	 * @param {boolean} [options.isInit] Should be set to true when performing initial tests on scene load.
 	 */
 	#testCollisions({
 		sourceToken,
 		targetToken,
 		destroyToken,
+		useActualPosition = false,
 		isInit = false
 	} = {}) {
+		// Tokens may not all be ready yet
+		if (!this.#isInitialised)
+			return;
+
 		// Array of the auras to test and their owner tokens
 		const aurasToTest = (sourceToken
 				? [sourceToken]
 				: [...game.canvas.tokens.placeables])
-			.flatMap(t => (this.#tokenAurasMap.get(t.id) ?? []).map(a => ({ parent: t, aura: a })));
+			.flatMap(t => (this.#tokenAurasMap.get(this.#getTokenMapKey(t)) ?? []).map(a => ({ parent: t, aura: a })));
 
 		// Array of the tokens to test and their entered auras sets
 		const tokensToTest = (targetToken
 				? [targetToken]
 				: [...game.canvas.tokens.placeables])
 			.map(t => {
-				let enteredAuras = this.#tokenEnteredAurasMap.get(t.id);
+				const tokenKey = this.#getTokenMapKey(t);
+				let enteredAuras = this.#tokenEnteredAurasMap.get(tokenKey);
 				if (!enteredAuras) {
 					enteredAuras = new Set();
-					this.#tokenEnteredAurasMap.set(t.id, enteredAuras);
+					this.#tokenEnteredAurasMap.set(tokenKey, enteredAuras);
 				}
 
 				return { token: t, enteredAuras };
@@ -169,52 +172,69 @@ export class AuraLayer extends CanvasLayer {
 
 		// Perform tests
 		for (const { parent, aura } of aurasToTest) {
-			const auraCid = this.#getAuraCompositeId(parent.id, aura.config.id);
+			const auraKey = this.#getAuraMapKey(parent.id, parent.isPreview, aura.config.id);
 
 			for (const { token, enteredAuras } of tokensToTest) {
-				if (parent.isPreview || token.isPreview) // if we're dealing with previews, just ignore it for now
-					continue;
-
 				if (parent.id === token.id) // token cannot enter it's own aura
 					continue;
+
+				const { x, y } = useActualPosition ? token : token.document;
+				const { w, h } = token;
 
 				const isInAura = aura.config.enabled
 					&& parent !== destroyToken && token !== destroyToken
 					// TODO: replace this with a test for each CELL within the token's area, instead of always using center
-					&& aura.isInside(token.x + token.w / 2, token.y + token.h / 2);
+					&& aura.isInside(x + w / 2, y + h / 2, { useActualPosition });
 
-				const wasInAura = enteredAuras.has(auraCid);
+				const wasInAura = enteredAuras.has(auraKey);
 
-				if (isInAura && !wasInAura) {
-					enteredAuras.add(auraCid);
-					Hooks.callAll(ENTER_AURA_HOOK, token, parent, aura.config, { isInit, /* TODO: */ isPreview: false });
-
-				} else if (!isInAura && wasInAura) {
-					enteredAuras.delete(auraCid);
-					Hooks.callAll(LEAVE_AURA_HOOK, token, parent, aura.config, { isInit, /* TODO: */ isPreview: false });
+				if (isInAura !== wasInAura) {
+					enteredAuras[isInAura ? "add" : "delete"](auraKey);
+					Hooks.callAll(
+						ENTER_LEAVE_AURA_HOOK,
+						token,
+						parent,
+						aura.config,
+						{
+							hasEntered: isInAura,
+							isPreview: parent.isPreview || token.isPreview,
+							isInit
+						});
 				}
 			}
 		}
 	}
 
 	/**
-	 * Gets an Aura's composite ID from the owning token's ID and the aura's config ID.
-	 * @param {string} parentId
-	 * @param {string} auraId
-	 * @returns {string}
+	 * Tests collisions for the specific token.
+	 * @param {Token} token
+	 * @param {Object} [options]
+	 * @param {boolean} [options.useActualPosition] If false (default), uses the position of the token document. If true,
+	 * uses the actual position of the token on the canvas.
+	 * @param {boolean} [options.destroyToken] If true, treats the passed `token` as destroy for collisions.
 	 */
-	#getAuraCompositeId(parentId, auraId) {
-		return `${parentId}|${auraId}`;
+	_testCollisionsForToken(token, { useActualPosition = false, destroyToken = false } = {}) {
+		this.#testCollisions({ sourceToken: token, destroyToken: destroyToken ? token : undefined, useActualPosition });
+		this.#testCollisions({ targetToken: token, destroyToken: destroyToken ? token : undefined, useActualPosition });
 	}
 
 	/**
-	 * Resolves a composite ID into an owning token ID and aura ID.
-	 * @param {string} cid
-	 * @returns {{ parentId: string; auraId: string; }}
+	 * Gets a Token's composite ID (used for map keys).
+	 * @param {Token} token
 	 */
-	#fromCompositeId(cid) {
-		const [parentId, auraId] = cid.split("|");
-		return { parentId, auraId };
+	#getTokenMapKey(token) {
+		return `${token.id}|${token.isPreview}`;
+	}
+
+	/**
+	 * Gets an Aura's composite ID (used for map keys) from the owning token's ID and the aura's config ID.
+	 * @param {string} parentId
+	 * @param {boolean} isPreview
+	 * @param {string} auraId
+	 * @returns {string}
+	 */
+	#getAuraMapKey(parentId, isPreview, auraId) {
+		return `${parentId}|${isPreview}|${auraId}`;
 	}
 }
 
@@ -337,10 +357,15 @@ export class Aura {
 	 * Determines whether the given coordinate is inside this aura or not.
 	 * @param {number} x
 	 * @param {number} y
+	 * @param {Object} [options]
+	 * @param {boolean} [options.useActualPosition] If false (default), uses the position of the token document. If true,
+	 * uses the actual position of the token on the canvas.
 	 */
-	isInside(x, y) {
-		// Need to offset by token position, as the geometry is relative to token position
-		return this.#geometry?.isInside(x - this.#token.x, y - this.#token.y) ?? false;
+	isInside(x, y, { useActualPosition = false } = {}) {
+		// Need to offset by token position, as the geometry is relative to token position, not relative to canvas pos
+		const { x: xOffset, y: yOffset } = useActualPosition ? this.#token : this.#token.document;
+
+		return this.#geometry?.isInside(x - xOffset, y - yOffset) ?? false;
 	}
 
 	destroy() {
