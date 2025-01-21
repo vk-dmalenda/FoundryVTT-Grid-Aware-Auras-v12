@@ -82,6 +82,13 @@ export class AuraConfigApplication extends FormApplication {
 	}
 
 	/** @override */
+	async _renderOuter() {
+		const html = await super._renderOuter();
+		this.#createAuraIdButton(html);
+		return html;
+	}
+
+	/** @override */
 	async _updateObject(_event, formData) {
 		const aura = foundry.utils.expandObject(formData);
 		delete aura.visibilityMode;
@@ -106,5 +113,27 @@ export class AuraConfigApplication extends FormApplication {
 				return mode;
 		}
 		return "CUSTOM";
+	}
+
+	/**
+	 * Creates a button to copy the aura's ID, just like there is on other document sheets.
+	 * @param {JQuery} html
+	 */
+	#createAuraIdButton(html) {
+		// Copied and tweaked from DocumentSheet._createDocumentIdLink
+		const title = html.find(".window-title");
+		const label = game.i18n.localize("GRIDAWAREAURAS.Aura");
+		const idLink = document.createElement("a");
+		idLink.classList.add("document-id-link");
+		idLink.setAttribute("alt", "Copy document id");
+		idLink.dataset.tooltip = `${label}: ${this.object.id}`;
+		idLink.dataset.tooltipDirection = "UP";
+		idLink.innerHTML = '<i class="fa-solid fa-passport"></i>';
+		idLink.addEventListener("click", event => {
+			event.preventDefault();
+			game.clipboard.copyPlainText(this.object.id);
+			ui.notifications.info(game.i18n.format("DOCUMENT.IdCopiedClipboard", { label, type: "id", id: this.object.id }));
+		});
+		title.append(idLink);
 	}
 }

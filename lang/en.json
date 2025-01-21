@@ -1,5 +1,6 @@
 {
 	"GRIDAWAREAURAS": {
+		"Aura": "Aura",
 		"AuraDisplayCustom": "Custom",
 		"AuraDisplayOwnerTurn": "Turn for Anyone",
 		"AuraDisplayTurn": "Turn for Owner",

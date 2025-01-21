@@ -1,7 +1,8 @@
 /** @import { AuraConfig } from "../utils/aura.mjs"; */
 import { LINE_TYPES, MODULE_NAME, TOKEN_AURAS_FLAG } from "../consts.mjs";
-import { createAura, getTokenAuras } from "../utils/aura.mjs";
+import { createAura, getAura, getTokenAuras } from "../utils/aura.mjs";
 import { AuraConfigApplication } from "./aura-config.mjs";
+import { ContextMenuGaa } from "./context-menu-gaa.mjs";
 
 const openAuraConfigApps = Symbol("openAuraConfigApps");
 
@@ -31,7 +32,7 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 
 	const getCurrentAuras = () => getTokenAuras(this.preview ?? this.document);
 
-	const render = () => {
+	const renderAuraConfig = () => {
 		const auras = getCurrentAuras();
 		const flagPath = `flags.${MODULE_NAME}.${TOKEN_AURAS_FLAG}`;
 		tagContent.html(template({
@@ -46,22 +47,11 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 			this.setPosition();
 	};
 
-	render();
+	renderAuraConfig();
 
-	// Setup listeners
-	/**
-	 * Enriches the event with the aura ID and aura as determined by the [data-aura-id] DOM attribute.
-	 * @param {(e: Event, auraId: number, aura: Aura) => void} callback
-	 * @returns {(e: Event) => void}
-	 */
-	const withAura = callback => {
-		return e => {
-			const { auraId } = e.target.closest("[data-aura-id]").dataset;
-			const aura = getCurrentAuras().find(a => a.id == auraId)
-			callback(e, auraId, aura);
-		};
-	};
-
+	// --------------- //
+	// Setup listeners //
+	// --------------- //
 	/**
 	 * Opens a dialog and begins editing the given Aura.
 	 * @param {AuraConfig} aura
@@ -86,35 +76,115 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 		app.render(true);
 	};
 
+	/**
+	 * Sets the aura to be enabled/disabled or to toggle.
+	 * @param {number} auraId
+	 * @param {boolean} [force]
+	*/
+	const toggleAuraEnabled = (auraId, force) => {
+		this._previewChanges({
+			[`flags.${MODULE_NAME}.${TOKEN_AURAS_FLAG}`]: getCurrentAuras().map(a => ({
+				...a,
+				enabled: a.id === auraId ? (typeof force === "boolean" ? force : !a.enabled) : a.enabled
+			}))
+		});
+		renderAuraConfig();
+	};
+
 	tagContent.on("click", "[data-action='grid-aware-auras-add']", () => {
 		const aura = createAura();
 		editAura(aura);
 		this._previewChanges({
 			[`flags.${MODULE_NAME}.${TOKEN_AURAS_FLAG}`]: [...getCurrentAuras(), aura]
 		});
-		render();
+		renderAuraConfig();
 	});
 
-	tagContent.on("click", "[data-action='grid-aware-auras-delete']", withAura((_e, auraId) => {
-		this._previewChanges({
-			[`flags.${MODULE_NAME}.${TOKEN_AURAS_FLAG}`]: getCurrentAuras().filter(a => a.id !== auraId)
-		});
-		render();
+	tagContent.on("change", "[data-action='grid-aware-auras-toggle-enabled']", withAuraDom((_, auraId) => {
+		toggleAuraEnabled(auraId);
 	}));
 
-	tagContent.on("click", "[data-action='grid-aware-auras-config']", withAura((_e, _auraId, aura) => {
-		editAura(aura);
-	}));
+	/**
+	 * Enriches the DOM event with the aura ID and aura as determined by the [data-aura-id] DOM attribute.
+	 * @param {(e: Event, auraId: number, aura: AuraConfig) => void} callback
+	 * @returns {(e: Event) => void}
+	 */
+	function withAuraDom(callback) {
+		return e => {
+			const { auraId } = e.target.closest("[data-aura-id]").dataset;
+			const aura = getCurrentAuras().find(a => a.id == auraId)
+			callback(e, auraId, aura);
+		};
+	};
 
-	tagContent.on("change", "[data-action='grid-aware-auras-toggle-enabled']", withAura((_e, auraId) => {
-		this._previewChanges({
-			[`flags.${MODULE_NAME}.${TOKEN_AURAS_FLAG}`]: getCurrentAuras().map(a => ({
-				...a,
-				enabled: a.id === auraId ? !a.enabled : a.enabled
-			}))
-		});
-		render();
-	}));
+	// ------------------ //
+	// Setup context menu //
+	// ------------------ //
+	new ContextMenuGaa(html, "[data-aura-id]", [
+		{
+			name: "Edit",
+			icon: "<i class='fas fa-edit'></i>",
+			callback: withAuraContextMenu((_, aura) => editAura(aura))
+		},
+		{
+			name: "Enable",
+			icon: "<i class='fas fa-toggle-on'></i>",
+			callback: withAuraContextMenu(auraId => toggleAuraEnabled(auraId, true)),
+			condition: withAuraContextMenu((_, aura) => !aura.enabled)
+		},
+		{
+			name: "Disable",
+			icon: "<i class='fas fa-toggle-off'></i>",
+			callback: withAuraContextMenu(auraId => toggleAuraEnabled(auraId, false)),
+			condition: withAuraContextMenu((_, aura) => aura.enabled)
+		},
+		{
+			name: "Duplicate",
+			icon: "<i class='fas fa-clone'></i>",
+			callback: withAuraContextMenu((_, aura) => {
+				const clonedAura = getAura({ ...aura, id: foundry.utils.randomID() });
+				editAura(clonedAura);
+				this._previewChanges({
+					[`flags.${MODULE_NAME}.${TOKEN_AURAS_FLAG}`]: [...getCurrentAuras(), clonedAura]
+				});
+				renderAuraConfig();
+			})
+		},
+		{
+			name: "Delete",
+			icon: "<i class='fas fa-trash'></i>",
+			callback: withAuraContextMenu(auraId => {
+				this._previewChanges({
+					[`flags.${MODULE_NAME}.${TOKEN_AURAS_FLAG}`]: getCurrentAuras().filter(a => a.id !== auraId)
+				});
+				renderAuraConfig();
+			})
+		}
+	]);
+
+	// Also open the context menu when the 3-dot button is clicked
+	tagContent.on("click", "[data-action='grid-aware-auras-context-menu']", e => {
+		e.preventDefault();
+		e.stopPropagation();
+		const { clientX, clientY } = e;
+		e.currentTarget.closest("[data-aura-id]").dispatchEvent(new PointerEvent("contextmenu", {
+			view: window, bubbles: true, cancelable: true, clientX, clientY
+		}));
+	});
+
+	/**
+	 * Enriches the context menu callback with the aura ID and aura as determined by the [data-aura-id] DOM attribute.
+	 * @template T
+	 * @param {(auraId: number, aura: AuraConfig) => T} callback
+	 * @returns {(el: JQuery) => T}
+	 */
+	function withAuraContextMenu(callback) {
+		return el => {
+			const auraId = el.data("auraId");
+			const aura = getCurrentAuras().find(a => a.id == auraId)
+			return callback(auraId, aura);
+		};
+	};
 
 	return html;
 }

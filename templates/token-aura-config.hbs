@@ -5,11 +5,10 @@
 <table class="grid-aware-auras-list">
 	<thead>
 		<th style="width: 24px">&nbsp;</th>
-		<th>Name</th>
+		<th class="text-left">Name</th>
 		<th style="width: 58px">Radius</th>
 		<th style="width: 58px">Line</th>
 		<th style="width: 58px">Fill</th>
-		<th style="width: 24px">&nbsp;</th>
 		<th style="width: 24px">
 			<a data-action="grid-aware-auras-add">
 				<i class="fas fa-plus"></i>
@@ -23,34 +22,29 @@
 				<td>
 					<label class="icon-checkbox" data-tooltip="Enable/disable aura" style="width: 18px">
 						<input type="checkbox" data-action="grid-aware-auras-toggle-enabled" {{checked aura.enabled}}>
-						<i class="fas fa-xmark icon-unchecked"></i>
-						<i class="fas fa-check icon-checked"></i>
+						<i class="fas fa-toggle-off icon-unchecked"></i>
+						<i class="fas fa-toggle-on icon-checked"></i>
 					</label>
 				</td>
 				<td>
 					{{aura.name}}
 				</td>
-				<td>
+				<td class="text-center">
 					{{aura.radius}}
 				</td>
-				<td>
+				<td class="text-center">
 					{{#unless (eq aura.lineType ../LINE_TYPES.NONE)}}
 						<input type="color" value="{{aura.lineColor}}" disabled>
 					{{/unless}}
 				</td>
-				<td>
+				<td class="text-center">
 					{{#unless (eq aura.fillType ../FILL_TYPES.NONE)}}
 						<input type="color" value="{{aura.fillColor}}" disabled>
 					{{/unless}}
 				</td>
-				<td>
-					<a data-action="grid-aware-auras-config">
-						<i class="fas fa-cog"></i>
-					</a>
-				</td>
 				<td class="text-center">
-					<a data-action="grid-aware-auras-delete">
-						<i class="fas fa-times"></i>
+					<a data-action="grid-aware-auras-context-menu" style="width: 100%; display: inline-block;">
+						<i class="fas fa-ellipsis-vertical"></i>
 					</a>
 				</td>
 			</tr>
