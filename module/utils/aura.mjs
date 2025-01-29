@@ -1,3 +1,4 @@
+/** @import { THT_RULER_ON_DRAG_MODES, TOKEN_TARGETS } from "../consts.mjs" */
 import { LINE_TYPES, MODULE_NAME, TOKEN_AURAS_FLAG } from "../consts.mjs";
 
 /**
@@ -20,6 +21,15 @@ import { LINE_TYPES, MODULE_NAME, TOKEN_AURAS_FLAG } from "../consts.mjs";
  * @property {{ x: number; y: number; }} fillTextureScale
  * @property {VisibilityConfig} ownerVisibility
  * @property {VisibilityConfig} nonOwnerVisibility
+ * @property {Object} effect
+ * @property {string} effect.effectId
+ * @property {boolean} effect.isOverlay
+ * @property {TOKEN_TARGETS} effect.targetTokens
+ * @property {Object} macro
+ * @property {string | null} macro.macroId
+ * @property {Object} terrainHeightTools
+ * @property {THT_RULER_ON_DRAG_MODES} terrainHeightTools.rulerOnDrag
+ * @property {TOKEN_TARGETS} terrainHeightTools.targetTokens
  */
 /**
  * @typedef {Object} VisibilityConfig
@@ -69,7 +79,19 @@ export const auraDefaults = {
 	fillTextureOffset: { x: 0, y: 0 },
 	fillTextureScale: { x: 100, y: 100 },
 	ownerVisibility: auraVisibilityDefaults,
-	nonOwnerVisibility: auraVisibilityDefaults
+	nonOwnerVisibility: auraVisibilityDefaults,
+	effect: {
+		effectId: null,
+		isOverlay: false,
+		targetTokens: "ALL"
+	},
+	macro: {
+		macroId: null
+	},
+	terrainHeightTools: {
+		rulerOnDrag: "NONE",
+		targetTokens: "ALL"
+	}
 };
 
 /** @returns {AuraConfig} */
@@ -159,6 +181,22 @@ export const auraVisibilityModeMatrices = {
 			hovered: false,
 			controlled: true,
 			dragging: false,
+			targeted: false,
+			turn: false
+		},
+		nonOwner: {
+			default: false,
+			hovered: false,
+			targeted: false,
+			turn: false
+		}
+	},
+	"DRAG": {
+		owner: {
+			default: false,
+			hovered: false,
+			controlled: false,
+			dragging: true,
 			targeted: false,
 			turn: false
 		},

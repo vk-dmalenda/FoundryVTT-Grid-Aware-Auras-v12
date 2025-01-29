@@ -1,7 +1,8 @@
 /** @import { AuraConfig } from "../utils/aura.mjs"; */
-import { ENTER_LEAVE_AURA_HOOK, LINE_TYPES, MODULE_NAME, SQUARE_GRID_MODE_SETTING } from "../consts.mjs";
-import { auraDefaults, auraVisibilityDefaults, getTokenAuras } from "../utils/aura.mjs";
+import { ENABLE_EFFECT_AUTOMATION_SETTING, ENABLE_MACRO_AUTOMATION_SETTING, ENTER_LEAVE_AURA_HOOK, LINE_TYPES, MODULE_NAME, SQUARE_GRID_MODE_SETTING } from "../consts.mjs";
+import { auraDefaults, auraVisibilityDefaults, getAura, getTokenAuras } from "../utils/aura.mjs";
 import { generateHexAuraPolygon } from "../utils/hex-utils.mjs";
+import { isTerrainHeightToolsActive, targetsToken, toggleEffect, warn } from "../utils/misc-utils.mjs";
 import { drawDashedPath } from "../utils/pixi-utils.mjs";
 import { generateSquareAuraPolygon } from "../utils/square-utils.mjs";
 
@@ -131,6 +132,7 @@ export class AuraLayer extends CanvasLayer {
 	/**
 	 * Tests whether or not a specific/all tokens are inside a specific/any auras.
 	 * @param {Object} [options]
+	 * @param {string} [options.userId] The user ID of the user that has triggered this test. Defaults to current user.
 	 * @param {Token} [options.sourceToken] If provided, only tests the auras from this token. If not, tests all auras.
 	 * @param {Token} [options.targetToken] If provided, only tests this token against the auras. If not, tests all tokens.
 	 * @param {Token} [options.destroyToken] If provided, assumes that any tests involving this token are non-entered.
@@ -139,6 +141,7 @@ export class AuraLayer extends CanvasLayer {
 	 * @param {boolean} [options.isInit] Should be set to true when performing initial tests on scene load.
 	 */
 	#testCollisions({
+		userId,
 		sourceToken,
 		targetToken,
 		destroyToken,
@@ -190,16 +193,7 @@ export class AuraLayer extends CanvasLayer {
 
 				if (isInAura !== wasInAura) {
 					enteredAuras[isInAura ? "add" : "delete"](auraKey);
-					Hooks.callAll(
-						ENTER_LEAVE_AURA_HOOK,
-						token,
-						parent,
-						aura.config,
-						{
-							hasEntered: isInAura,
-							isPreview: parent.isPreview || token.isPreview,
-							isInit
-						});
+					this.#handleTokenEnterLeaveAura(token, parent, getAura(aura.config), isInAura, userId ?? game.userId, isInit);
 				}
 			}
 		}
@@ -209,13 +203,68 @@ export class AuraLayer extends CanvasLayer {
 	 * Tests collisions for the specific token.
 	 * @param {Token} token
 	 * @param {Object} [options]
+	 * @param {string} [options.userId] The ID of the user that has triggered this test. Default to current user.
 	 * @param {boolean} [options.useActualPosition] If false (default), uses the position of the token document. If true,
 	 * uses the actual position of the token on the canvas.
 	 * @param {boolean} [options.destroyToken] If true, treats the passed `token` as destroy for collisions.
 	 */
-	_testCollisionsForToken(token, { useActualPosition = false, destroyToken = false } = {}) {
-		this.#testCollisions({ sourceToken: token, destroyToken: destroyToken ? token : undefined, useActualPosition });
-		this.#testCollisions({ targetToken: token, destroyToken: destroyToken ? token : undefined, useActualPosition });
+	_testCollisionsForToken(token, { userId, useActualPosition = false, destroyToken = false } = {}) {
+		this.#testCollisions({ userId, sourceToken: token, destroyToken: destroyToken ? token : undefined, useActualPosition });
+		this.#testCollisions({ userId, targetToken: token, destroyToken: destroyToken ? token : undefined, useActualPosition });
+	}
+
+	/**
+	 * Method that runs any automation and calls hooks for when a token enters or leaves an aura.
+	 * @param {Token} token The token that entered or left the aura.
+	 * @param {Token} parent The token that owns the aura.
+	 * @param {AuraConfig} aura
+	 * @param {boolean} hasEntered
+	 * @param {string} userId The user (not the ID) of the user that has triggered this test.
+	 * @param {boolean} isInit
+	 */
+	#handleTokenEnterLeaveAura(token, parent, aura, hasEntered, userId, isInit) {
+		const isPreview = parent.isPreview || token.isPreview;
+
+		// Call hooks
+		Hooks.callAll(
+			ENTER_LEAVE_AURA_HOOK,
+			token,
+			parent,
+			aura,
+			{ hasEntered, isPreview, isInit, userId });
+
+		// Apply/remove effects
+		if (!isInit && !isPreview && aura.effect.effectId?.length && userId === game.userId
+			&& targetsToken(token, aura.effect.targetTokens)
+			&& game.settings.get(MODULE_NAME, ENABLE_EFFECT_AUTOMATION_SETTING)) {
+			// We only do this if the current user is the user that triggered the change. We only want this code to run
+			// once, regardless of how many users are on the scene when it happens. Ideally we'd limit this to just GM
+			// users so that we know we'd be able to do this, however a GM user may not have this scene loaded and
+			// therefore would not recieve this event.
+			// TODO: before removing effects, check that there are no other auras that the token is in that also provide
+			// this same effect.
+			toggleEffect(token.actor, aura.effect.effectId, hasEntered, aura.effect.isOverlay, true);
+		}
+
+		// Run macros
+		if (aura.macro.macroId && game.settings.get(MODULE_NAME, ENABLE_MACRO_AUTOMATION_SETTING)) {
+			const macro = game.macros.get(aura.macro.macroId);
+			if (macro) {
+				// Foundry already wraps the execution inside a try..catch, so we do not need to worry about errors thrown in macros.
+				macro.execute({ token, parent, aura, options: { hasEntered, isPreview: token.isPreview || parent.isPreview, isInit, userId } });
+			} else {
+				warn(`Attempted to call macro with ID '${aura.macro.macroId}' due to enter/leave from aura '${aura.name}' on token '${parent.name}', but it could not be found.`)
+			}
+		}
+
+		// Terrain Height Tools integration
+		if (parent.isPreview && aura.terrainHeightTools.rulerOnDrag !== "NONE" && isTerrainHeightToolsActive()) {
+			const group = `${MODULE_NAME}|${aura.id}|${token.actor.uuid}`;
+			if (hasEntered && targetsToken(token, aura.terrainHeightTools.targetTokens))
+				terrainHeightTools.drawLineOfSightRaysBetweenTokens(parent, token, { group, drawForOthers: false, includeEdges: aura.terrainHeightTools.rulerOnDrag === "E2E" });
+			else
+				terrainHeightTools.clearLineOfSightRays({ group });
+		}
 	}
 
 	/**

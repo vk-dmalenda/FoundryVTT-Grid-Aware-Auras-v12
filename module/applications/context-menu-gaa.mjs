@@ -18,7 +18,6 @@ export class ContextMenuGaa extends ContextMenu {
 		const { clientWidth, clientHeight } = document.documentElement;
 		const { width, height } = html.getBoundingClientRect();
 
-		// TODO: Improve core ContextMenu class to provide this event rather than using the global event.
 		const { clientX, clientY } = window.event;
 		const left = Math.min(clientX, clientWidth - width);
 		this._expandUp = clientY + height > clientHeight;

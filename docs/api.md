@@ -32,6 +32,7 @@ Disabled auras will trigger an enter hook when they become enabled if tokens are
 |`options.hasEntered`|`boolean`|True if this hook was called because the token entered the aura; False if this hook was called because the token left the aura.|
 |`options.isPreview`|`boolean`|True if this hook was called because of a preview token.|
 |`options.isInit`|`boolean`|True if this entry happened when a scene was initialised. This can only be true when `options.hasEntered` is also true.|
+|`options.userId`|`string`|The ID of the user that triggered the enter/leave hook to be called.|
 
 ### Example
 

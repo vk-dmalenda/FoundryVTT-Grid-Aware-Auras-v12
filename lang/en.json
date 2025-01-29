@@ -2,8 +2,9 @@
 	"GRIDAWAREAURAS": {
 		"Aura": "Aura",
 		"AuraDisplayCustom": "Custom",
-		"AuraDisplayOwnerTurn": "Turn for Anyone",
-		"AuraDisplayTurn": "Turn for Owner",
+		"AuraDisplayDrag": "When Dragging",
+		"AuraDisplayOwnerTurn": "Combat Turn for Anyone",
+		"AuraDisplayTurn": "Combat Turn for Owner",
 		"Auras": "Auras",
 		"LineType": "Line Type",
 		"LineTypeDashed": "Dashed",
@@ -11,9 +12,16 @@
 		"LineTypeSolid": "Solid",
 		"SquareGridModeEquidistant": "Equidistant (1/1/1)",
 		"SquareGridModeAlternating": "Alternating (1/2/1)",
-		"SquareGridModeManhattan": "Manhattan"
+		"SquareGridModeManhattan": "Manhattan",
+		"ThtRulerOnDragModeNone": "Don't show",
+		"ThtRulerOnDragModeC2C": "Centre Only",
+		"ThtRulerOnDragModeE2E": "Centre and Edge"
 	},
 	"SETTINGS": {
+		"EnableEffectAutomation.Name": "Enable Effect Automation",
+		"EnableEffectAutomation.Hint": "This will enable configuration options for auras to be able to automatically add or remove status effects from tokens when they enter/leave an aura. Note that this may require a GM user present to function correctly when the user that triggered the aura does not have ownership over an affected token.",
+		"EnableMacroAutomation.Name": "Enable Macro Automation",
+		"EnableMacroAutomation.Hint": "This will enable macros to be triggered by auras when tokens enter/leave their area. Note that by enabling this, it is possible for users to configure macros to be executed on other user's games. Make sure you understand the implications of this before turning this feature on.",
 		"SquareGridMode.Name": "Square Grid Mode",
 		"SquareGridMode.Hint": "Coordinate system to determine the shape of the aura when using square grids."
 	}

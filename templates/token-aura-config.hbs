@@ -28,6 +28,9 @@
 				</td>
 				<td>
 					{{aura.name}}
+					{{#if (or (and ../effectsEnabled aura.effect.effectId) (and ../macrosEnabled aura.macro.macroId))}}
+						<i class="fas fa-bolt" data-tooltip="This aura applies effects or calls macros"></i>
+					{{/if}}
 				</td>
 				<td class="text-center">
 					{{aura.radius}}

@@ -1,7 +1,7 @@
 /** @import { Aura } from ("../utils/aura.mjs"); */
-import { AURA_VISIBILITY_MODES, LINE_TYPES, MODULE_NAME } from "../consts.mjs";
+import { AURA_VISIBILITY_MODES, ENABLE_EFFECT_AUTOMATION_SETTING, ENABLE_MACRO_AUTOMATION_SETTING, LINE_TYPES, MODULE_NAME, THT_RULER_ON_DRAG_MODES, TOKEN_TARGETS } from "../consts.mjs";
 import { auraVisibilityModeMatrices, getAura } from "../utils/aura.mjs";
-import { partialEqual } from "../utils/misc-utils.mjs";
+import { isTerrainHeightToolsActive, partialEqual } from "../utils/misc-utils.mjs";
 
 export class AuraConfigApplication extends FormApplication {
 
@@ -21,9 +21,15 @@ export class AuraConfigApplication extends FormApplication {
 			title: "Aura Configuration",
 			classes: ["sheet", "grid-aware-auras-aura-config"],
 			template: `modules/${MODULE_NAME}/templates/aura-config.hbs`,
-			width: 360,
+			width: 420,
 			height: "auto",
-			tabs: [{ navSelector: ".tabs", contentSelector: "form" }],
+			tabs: [
+				{ navSelector: ".tabs[data-group='main']", contentSelector: "form" },
+				{ navSelector: ".tabs[data-group='automation']", contentSelector: ".tab[data-tab='automation']" }
+			],
+			dragDrop: [
+				{ dragSelector: null, dropSelector: ".tab[data-tab='macro']" }
+			],
 			submitOnChange: true,
 			closeOnSubmit: false,
 			submitOnClose: false
@@ -42,8 +48,6 @@ export class AuraConfigApplication extends FormApplication {
 		// Apply default values for fields if they are unset
 		data.object = getAura(this.object);
 
-		data.visibilityMode = this.#getVisibilityMode(data.object.ownerVisibility, data.object.nonOwnerVisibility);
-
 		data.lineTypes = Object.fromEntries(Object.entries(LINE_TYPES)
 			.map(([name, value]) => [value, `GRIDAWAREAURAS.LineType${name.titleCase()}`]));
 
@@ -51,6 +55,17 @@ export class AuraConfigApplication extends FormApplication {
 			.map(([name, value]) => [value, `DRAWING.FillType${name.titleCase()}`]));
 
 		data.visibilityModes = AURA_VISIBILITY_MODES;
+		data.visibilityMode = this.#getVisibilityMode(data.object.ownerVisibility, data.object.nonOwnerVisibility);
+
+		data.effectsEnabled = game.settings.get(MODULE_NAME, ENABLE_EFFECT_AUTOMATION_SETTING);
+		data.statusEffects = CONFIG.statusEffects;
+
+		data.macrosEnabled = game.settings.get(MODULE_NAME, ENABLE_MACRO_AUTOMATION_SETTING);
+
+		data.isTerrainHeightToolsActive = isTerrainHeightToolsActive();
+		data.terrainHeightToolsRulerOnDragMode = THT_RULER_ON_DRAG_MODES;
+
+		data.tokenTargets = TOKEN_TARGETS;
 
 		return data;
 	}
@@ -79,6 +94,30 @@ export class AuraConfigApplication extends FormApplication {
 				Object.entries(preset.nonOwner).forEach(([key, value]) => html.find(`[name="nonOwnerVisibility.${key}"]`).prop("checked", value));
 			}
 		});
+	}
+
+	_canDragDrop() {
+		// Enable dropping of macros if the setting for macros is turned on.
+		return game.settings.get(MODULE_NAME, ENABLE_MACRO_AUTOMATION_SETTING);
+	}
+
+	/** @param {DragEvent} event */
+	async _onDrop(event) {
+		// Handle dropping macros
+		if (!game.settings.get(MODULE_NAME, ENABLE_MACRO_AUTOMATION_SETTING)) return;
+
+		try {
+			const dropDataText = event.dataTransfer.getData("text/plain");
+			const dropData = JSON.parse(dropDataText);
+
+			if (dropData.type !== "Macro" || !("uuid" in dropData)) return;
+			const macro = await fromUuid(dropData.uuid);
+
+			if (!(macro instanceof Macro)) return;
+			this.element.find("[name='macro.macroId']").val(macro.id);
+			this.element.find("form").get(0).requestSubmit();
+		} catch {
+		}
 	}
 
 	/** @override */

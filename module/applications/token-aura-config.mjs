@@ -1,5 +1,5 @@
 /** @import { AuraConfig } from "../utils/aura.mjs"; */
-import { LINE_TYPES, MODULE_NAME, TOKEN_AURAS_FLAG } from "../consts.mjs";
+import { ENABLE_EFFECT_AUTOMATION_SETTING, ENABLE_MACRO_AUTOMATION_SETTING, LINE_TYPES, MODULE_NAME, TOKEN_AURAS_FLAG } from "../consts.mjs";
 import { createAura, getAura, getTokenAuras } from "../utils/aura.mjs";
 import { AuraConfigApplication } from "./aura-config.mjs";
 import { ContextMenuGaa } from "./context-menu-gaa.mjs";
@@ -40,7 +40,9 @@ export async function tokenConfigRenderInner(wrapped, ...args) {
 			flagPath,
 			LINE_TYPES,
 			FILL_TYPES: CONST.DRAWING_FILL_TYPES,
-			showGridTypeWarning: !this.isPrototype && canvas.grid.type === CONST.GRID_TYPES.GRIDLESS
+			showGridTypeWarning: !this.isPrototype && canvas.grid.type === CONST.GRID_TYPES.GRIDLESS,
+			effectsEnabled: game.settings.get(MODULE_NAME, ENABLE_EFFECT_AUTOMATION_SETTING),
+			macrosEnabled: game.settings.get(MODULE_NAME, ENABLE_MACRO_AUTOMATION_SETTING)
 		}));
 		tagContent.find(`[name="${flagPath}"]`).val(JSON.stringify(auras));
 		if (this._state === Application.RENDER_STATES.RENDERED)

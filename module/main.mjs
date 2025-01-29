@@ -1,7 +1,8 @@
 import { tokenConfigClose, tokenConfigRenderInner } from "./applications/token-aura-config.mjs";
-import { MODULE_NAME } from "./consts.mjs";
+import { MODULE_NAME, SOCKET_NAME, TOGGLE_EFFECT_FUNC } from "./consts.mjs";
 import { AuraLayer } from "./layers/aura-layer.mjs";
 import { registerSettings } from "./settings.mjs";
+import { toggleEffect } from "./utils/misc-utils.mjs";
 
 Hooks.once("init", () => {
 	registerSettings();
@@ -13,11 +14,25 @@ Hooks.once("init", () => {
 	libWrapper.register(MODULE_NAME, "TokenConfig.prototype._renderInner", tokenConfigRenderInner, libWrapper.WRAPPER);
 });
 
-Hooks.on("updateToken", (tokenDocument) => {
+Hooks.once("ready", () => {
+	game.socket.on(SOCKET_NAME, ({ func, runOn, ...args }) => {
+		if (runOn?.length > 0 && runOn !== game.userId)
+			return;
+
+		switch(func) {
+			case TOGGLE_EFFECT_FUNC:
+				const { actorUuid, effectId, state, overlay } = args;
+				toggleEffect(actorUuid, effectId, state, overlay, false);
+				break;
+		}
+	});
+});
+
+Hooks.on("updateToken", (tokenDocument, _delta, _options, userId) => {
 	const token = game.canvas.tokens.get(tokenDocument.id);
 	if (token && AuraLayer.current) {
 		AuraLayer.current._updateToken(token);
-		AuraLayer.current._testCollisionsForToken(token);
+		AuraLayer.current._testCollisionsForToken(token, { userId });
 	}
 })
 
