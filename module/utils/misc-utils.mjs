@@ -19,6 +19,26 @@ export function warn(message, ...args) {
 }
 
 /**
+ * Gets or creates an item in the given map.
+ * @template TKey
+ * @template TValue
+ * @template {Map<TKey, TValue>} TMap
+ * @param {TMap} map
+ * @param {TKey} key
+ * @param {() => TValue} valueFactory
+ * @returns {TMap extends Map<any, infer I> ? I : never}
+ */
+export function getOrCreate(map, key, valueFactory) {
+	if (map.has(key)) {
+		return map.get(key);
+	}
+
+	const value = valueFactory();
+	map.set(key, value);
+	return value;
+}
+
+/**
  * Sets the effect with the given ID to be active or inactive on the ID with given actor.
  * @param {Actor | string} actorOrUuid The actor instance or the UUID of the actor to add the effect to.
  * @param {string} effectId The ID of the status effect to add.

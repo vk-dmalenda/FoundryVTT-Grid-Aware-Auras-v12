@@ -5,7 +5,7 @@ import {
 	SQUARE_GRID_MODE,
 	SQUARE_GRID_MODE_SETTING
 } from "./consts.mjs";
-import { AuraLayer } from "./layers/aura-layer.mjs";
+import { AuraLayer } from "./layers/aura-layer/aura-layer.mjs";
 
 export function registerSettings() {
 	game.settings.register(MODULE_NAME, SQUARE_GRID_MODE_SETTING, {
@@ -17,7 +17,7 @@ export function registerSettings() {
 		choices: Object.fromEntries(Object.entries(SQUARE_GRID_MODE)
 			.map(([name, value]) => [value, `GRIDAWAREAURAS.SquareGridMode${name.titleCase()}`])),
 		config: true,
-		onChange: () => AuraLayer.current?._redraw()
+		onChange: () => AuraLayer.current?._updateAuras({ force: true })
 	});
 
 	game.settings.register(MODULE_NAME, ENABLE_EFFECT_AUTOMATION_SETTING, {
