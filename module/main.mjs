@@ -1,3 +1,4 @@
+import * as api from "./api.mjs";
 import { tokenConfigClose, tokenConfigRenderInner } from "./applications/token-aura-config.mjs";
 import { MODULE_NAME, SOCKET_NAME, TOGGLE_EFFECT_FUNC } from "./consts.mjs";
 import { AuraLayer } from "./layers/aura-layer/aura-layer.mjs";
@@ -12,6 +13,8 @@ Hooks.once("init", () => {
 	// Wrap the default TokenConfig instead of using the renderTokenConfig hook because the latter does not run when the
 	// config is re-rendered, and it can cause the tab to disappear :(
 	libWrapper.register(MODULE_NAME, "TokenConfig.prototype._renderInner", tokenConfigRenderInner, libWrapper.WRAPPER);
+
+	game.modules.get("grid-aware-auras").api = { ...api };
 });
 
 Hooks.once("ready", () => {

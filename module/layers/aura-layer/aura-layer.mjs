@@ -252,7 +252,7 @@ export class AuraLayer extends CanvasLayer {
 			// If removing the effect, check that there are no other auras that the target token is inside that would be
 			// applying the same effect.
 			const shouldApplyOrRemoveEffect = hasEntered
-				|| !(this._auraManager.getAurasTokenIsInside(token).some(a =>
+				|| !(this._auraManager.getAurasContainingToken(token).some(a =>
 					(a.aura.config.id !== aura.id || a.parent !== parent) &&
 					a.aura.config.effect?.effectId === aura.effect.effectId));
 

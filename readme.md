@@ -19,7 +19,7 @@ Alternatively, paste this URL into the 'Manifest URL' field of the 'Install Modu
 ## Usage
 
 1. First open a token configuration by using the cog button when right-clicking a token on the scene, or open the prototype token configuration for an actor.
-2. Then, navigate to the new "Auras" tab, then click the `+` button to create a new aura. You can then set the size of the aura, how you want it to appear visually, and [when it should be visible](#visibility). You can add as many auras as you want!
+2. Then, navigate to the new "Auras" tab, then click the `+` button to create a new aura. You can then set the size of the aura, how you want it to appear visually, [when it should be visible](#visibility), and whether you want to add any [automation functionality](#automation). You can add as many auras as you want!
 3. If you need to edit an existing aura, you can click the cog button next to it to edit it. You can also quickly toggle whether that aura is visible by clicking the eye icon.
 4. Finally, just click the "Update Token" button.
 
@@ -42,6 +42,36 @@ GAA computes visibility by checking which states are applicable, determining whe
 
 In the above example, the aura is visible to a user when that user is hovering the token; OR when the token is selected/controlled (only possible by it's owner); OR if the user owns the token and it is that token's turn in the combat tracker.
 
+### Automation
+
+#### Effect
+
+This automation allows adding an effect to a token when it enters the configured aura, and removes it when the token leaves. If multiple auras are applying the same effect, the token must leave all of them for the effect to be removed.
+
+The '_Enable Effect Automation_' setting must be enabled by the GM in the settings for this feature to be available. It defaults to disabled.
+
+- _Effect_ - Select an effect that will be applied to/removed from tokens within the aura.
+- _Overlay?_ - If checked, the effect will be added as an overlay (i.e. the icon will appear over the whole token).
+- _Target Tokens_ - This is used to limit which tokens have effects applied to them. This is the token disposition as set in the token's config. For example, choosing 'Hostile' will only apply affects to tokens with the 'Hostile' disposition.
+
+#### Macro
+
+This automation executes a macro when a token enters or leaves the aura. Note that this also includes when 'preview' tokens (such as when dragging a token) enter or leave. The arguments passed to the macro are identical to those passed to the [gridAwareAuras.enterLeaveAura hook](./docs/hooks.md#gridawareaurasenterleaveaura). Note that this macro is executed for all players that are currently on the scene.
+
+The '_Enable Macro Automation_' setting must be enabled by the GM in the settings for this feature to be available. It defaults to disabled.
+
+- _Enter/Leave Macro_ - The **ID** of a macro to execute. Paste an ID in, or drag-and-drop a macro from the macrobar or macros folder to use it's ID.
+
+#### Terrain Height Tools
+
+If the Terrain Height Tools module v0.4.7 or newer is installed and activated, the tab will be available. It allows for drawing line of sight rulers between the token that owns the aura and any tokens that are inside the aura while the token is being dragged.
+
+- _Token Ruler on Drag_ - This determines what type of ruler to draw (if any).
+	- _Don't show_ - Disables THT integration for this Aura.
+	- _Centre Only_ - Shows centre-to-centre rulers.
+	- _Centre and Edge_ - Shows centre-to-centre and edge-to-edge rulers.
+- _Target Tokens_ - This is used to limit which tokens have line of sight rulers drawn to them. This is the token disposition as set in the token's config. For example, choosing 'Hostile' will only draw line of sight rulers between this token and tokens with the 'Hostile' disposition.
+
 ### Square Grids
 
 When dealing with square grids, there are different ways of handling diagonals. You can configure which rules Grid-Aware Auras uses in the module settings. Which one you choose will depend on your game. GAA supports the following:
@@ -55,13 +85,13 @@ When dealing with square grids, there are different ways of handling diagonals. 
 _(Numbers are for illustrative purposes only)_
 
 ## See Also
-- [API Reference (for macros and modules)](./docs/api.md)
+- [API Reference](./docs/api.md)
+- [Hooks](./docs/hooks.md)
 
 ## Roadmap
 
 Features that I will be looking to add to Grid-Aware Auras in future (in rough order of priority):
 
-- [ ] Hooks for when other tokens enter/leave an aura (e.g. to allow applying active effects)
 - [ ] Formal API for creating/updating/deleting auras on tokens.
 - [ ] Allow auras on items, which will get added to the token when owned by that token's actor.
 - [ ] Setting auras by active effects (e.g. allowing effects to alter the range of an aura).

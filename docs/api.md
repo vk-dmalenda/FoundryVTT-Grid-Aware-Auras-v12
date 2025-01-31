@@ -3,70 +3,143 @@
 
 # API
 
-Coming soon!
+Grid-Aware Auras exposes an API to be used by other macros, scripts, or modules. It is available through the module: `game.modules.get("grid-aware-auras").api`.
 
-# Hooks
+- [`getAurasContainingToken`](#getaurascontainingtoken)
+- [`getTokenAuras`](#gettokenauras)
+- [`getTokensInsideAura`](#gettokensinsideaura)
+- [`toggleEffect`](#toggleeffect)
 
-- [`gridAwareAuras.enterLeaveAura`](#gridawareaurasenteraura)
+## getAurasContainingToken
 
-## gridAwareAuras.enterLeaveAura
+![Available Since v0.2.0](https://img.shields.io/badge/Available%20Since-v0.2.0-blue?style=flat-square)
 
-This hook fires when a token enters or leaves another token's aura.
+Gets an array of auras that the given token is currently inside.
 
-If a token enters/leaves multiple auras at the same time, this hook will be called multiple times, once for each entry/exit.
+### Parameters
 
-In the options argument, there is an `isPreview` flag which indicates whether or not the hook fired because of part of a drag to move a token. Note that when dealing with previews, when the preview token is first created, if it is within an aura it will immediately call an 'enter' hook. When the drag is released and the preview destroyed, it will call a 'leave' hook. When dragging and dropping a token into an aura, the preview exit hook will fire before the non-preview enter hook.
+|Name|Type|Default|Description|
+|-|-|-|-|
+|token|`Token`|*Required*|The token to check.|
 
-Enter hooks are called for every token/aura when a scene is loaded. Leave hooks are _not_ called when the scene is unloaded.
+### Returns
 
-Disabled auras will trigger an enter hook when they become enabled if tokens are in their radius. Likewise they will trigger a leave hook when they become disabled for any tokens in their radius. Apart from these two cases, disabled auras will not trigger any hooks.
-
-### Arguments
+An array of auras that the given token is inside. Each element of the array is an object with the following properties:
 
 |Name|Type|Description|
 |-|-|-|
-|`token`|`Token`|The token that entered/left another token's aura. This is the token that does NOT have that aura.|
-|`parent`|`Token`|The token that owns the aura which the other token entered/left.|
-|`aura`|[`AuraConfig`](#auraconfig)|The metadata about the aura that was entered/left.|
-|`options`|`Object`|Additional information about the entry/exit event.|
-|`options.hasEntered`|`boolean`|True if this hook was called because the token entered the aura; False if this hook was called because the token left the aura.|
-|`options.isPreview`|`boolean`|True if this hook was called because of a preview token.|
-|`options.isInit`|`boolean`|True if this entry happened when a scene was initialised. This can only be true when `options.hasEntered` is also true.|
-|`options.userId`|`string`|The ID of the user that triggered the enter/leave hook to be called.|
+|parent|`Token`|The token the owns this aura.|
+|aura|[`AuraConfig`](#auraconfig)|The aura definition.|
 
 ### Example
 
-In this example, a token's light emission is changed to represent being on shielded when entering an aura called "Shield Aura", and removed when the token leaves.
-
 ```js
-Hooks.on("gridAwareAuras.enterLeaveAura", async (token, parent, aura, options) => {
-	// We don't want to apply this status to preview tokens
-	if (options.isPreview) {
-		return;
-	}
+const { api } = game.modules.get("grid-aware-auras");
+const [token] = [...game.user.targets];
 
-	// We only care about "Shield Aura" auras
-	if (aura.name !== "Shield Aura") {
-		return;
-	}
-
-	const light = options.hasEntered
-		? {
-			dim: 1,
-			bright: 0.5,
-			color: "#00ffff",
-			animation: { type: "grid", speed: 8, intensity: 8 }
-		}
-		: {
-			dim: 0,
-			bright: 0
-		};
-
-	await token.document.update({ light });
-});
+const auras = api.getAurasContainingToken(token);
+for (const { parent, aura } of auras) {
+	console.log(`${token.name} is inside ${parent.name}'s "${aura.name}" aura.`);
+}
 ```
 
+## getTokenAuras
+
+![Available Since v0.2.0](https://img.shields.io/badge/Available%20Since-v0.2.0-blue?style=flat-square)
+
+Returns a list of auras that are defined on the given token.
+
+### Parameters
+
+|Name|Type|Default|Description|
+|-|-|-|-|
+|token|`Token`|*Required*|The token whose auras to return.|
+
+### Returns
+
+An array of [`AuraConfig`s](#auraconfig).
+
+### Example
+
+```js
+const { api } = game.modules.get("grid-aware-auras");
+const [token] = [...game.user.targets];
+
+const auras = api.getTokenAuras(token);
+console.log(`Token ${token.name} has the following auras:`);
+for (const aura of auras) {
+	console.log(` - ${aura.name} (radius: ${aura.radius})`);
+}
+```
+
+## getTokensInsideAura
+
+![Available Since v0.2.0](https://img.shields.io/badge/Available%20Since-v0.2.0-blue?style=flat-square)
+
+Gets an array of Tokens that are inside the given aura.
+
+### Parameters
+
+|Name|Type|Default|Description|
+|-|-|-|-|
+|parent|`Token`|*Required*|The token that owns the aura to check.|
+|auraId|`string`|*Required*|The ID of the aura on belonging to the parent token.|
+
+### Returns
+
+An array of `Token`s within the aura.
+
+### Example
+
+```js
+const { api } = game.modules.get("grid-aware-auras");
+const [parent] = [...game.user.targets];
+const [aura] = api.getTokenAuras(parent);
+
+const tokens = api.getTokensInsideAura(parent, aura.id);
+for (const token of tokens) {
+	console.log(`${token.name} is inside ${parent.name}'s "${aura.name}" aura.`);
+}
+```
+
+## toggleEffect
+
+![Available Since v0.2.0](https://img.shields.io/badge/Available%20Since-v0.2.0-blue?style=flat-square)
+
+Can be used to toggle an effect on a target token or actor. If the user calling the function is able to modify the actor, does so immediately. If the user cannot, the action is delegated to a GM user. If no GMs are present, the action will fail.
+
+Note that this requires the '_Enable Effect Automation_' setting to be turned on in the Grid-Aware Auras category.
+
+### Parameters
+
+|Name|Type|Default|Description|
+|-|-|-|-|
+|`target`|`Token \| TokenDocument \| Actor \| string`|*Required*|A token, token document, actor, or UUID for a token or actor which the effect will be applied to/removed from.|
+|`effectId`|`string`|*Required*|The ID of the effect to add to/remove from the target. Can be found in the `CONFIG.statusEffects` array.|
+|`state`|`boolean`|*Required*|`true` to apply the effect, or `false` to remove it.|
+|`options`|`Object`|`{}`|Additional options|
+|`options.overlay`|`boolean`|`false`|Whether to apply the effect as an 'overlay' (shows over the entire token).|
+
+### Returns
+
+A promise that resolves when the toggle is completed.
+
+### Example
+
+```js
+const { api } = game.modules.get("grid-aware-auras");
+const [token] = [...game.user.targets];
+const { id: statusEffectId } = CONFIG.statusEffects.find(s => s.name === "Invisible");
+
+api.toggleEffect(token, statusEffectId, true, { overlay: true });
+```
+
+---
+
 # Types
+
+- [`AuraConfig`](#auraconfig)
+- [`VisibilityConfig`](#visibilityconfig)
 
 ## AuraConfig
 
@@ -92,6 +165,15 @@ Defines metadata about an aura.
 |`fillTextureScale`|`{ x: number; y: number; }`|When `fillType` is _Pattern_, a scale (in percent) for the texture. A value of 100 is the default and means no scaling. A value of 50 would mean to shrink the texture by half in that axis.|
 |`ownerVisibility`|[`VisibilityConfig`](#visibilityconfig)|The booleans that determine when the aura is visible to owners of the token.|
 |`nonOwnerVisibility`|[`VisibilityConfig`](#visibilityconfig)|The booleans that determine when the aura is visible to non-owners of the token.|
+|`effect`|`Object`|An object containing effect automation config.|
+|`effect.effectId`|`string`|The ID of the effect to be added/removed by this aura. May be null or empty.|
+|`effect.isOverlay`|`boolean`|Whether the effect should be applied as an overlay.|
+|`effect.targetTokens`|`"ALL" \| "FRIENDLY" \| "NEUTRAL" \| "HOSTILE"`|What token dispositions can have the effect applied/removed.|
+|`macro`|`Object`|An object containing macro automation config.|
+|`macro.macroId`|`string`|The ID of a macro to execute when a token enters/leaves this aura. May be null or empty.|
+|`terrainHeightTools`|`Object`|An object containing Terrain Height Tools automation config.|
+|`terrainHeightTools.rulerOnDrag`|`"NONE" \| "C2C" \| "E2E"`|The type of ruler to draw to tokens in range of this aura on drag. C2C = Centre-to-Centre. E2E = Edge-to-Edge and Centre-to-Centre.|
+|`terrainHeightTools.targetTokens`|`"ALL" \| "FRIENDLY" \| "NEUTRAL" \| "HOSTILE"`|The types of token that line of sight rulers should be drawn to.|
 
 ## VisibilityConfig
 

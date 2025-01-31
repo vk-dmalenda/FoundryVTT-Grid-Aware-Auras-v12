@@ -54,7 +54,7 @@ export class AuraManager {
 	 * Returns the auras that the given token is inside.
 	 * @param {PartialToken} token
 	 */
-	getAurasTokenIsInside(token) {
+	getAurasContainingToken(token) {
 		const tokenCId = this.#getTokenCompositeId(token);
 		const auraCIds = [...(this.#aurasContainingToken.get(tokenCId) ?? [])];
 		return auraCIds.map(cid => this.#getAuraFromCompositeId(cid)).filter(t => !!t);
@@ -227,6 +227,6 @@ export class AuraManager {
 		const parent = this.#getTokenFromCompositeId(tokenCId);
 		const aura = this.#tokenAuraMap.get(tokenCId)?.get(auraId);
 		if (!aura) warn(`getAuraFromCompositeId: An aura matching composite ID '${auraCId}' was not found.`);
-		return { parent, aura };
+		return aura && parent ? { parent, aura } : null;
 	}
 }
