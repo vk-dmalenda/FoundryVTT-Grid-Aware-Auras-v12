@@ -29,6 +29,16 @@ export function getTokensInsideAura(parent, auraId) {
 }
 
 /**
+ * Determines if the testToken is inside the given aura belonging to parentToken.
+ * @param {Token | { id: string; preview: boolean; }} testToken The token that will be checked to see if it is inside the aura.
+ * @param {Token | { id: string; preview: boolean; }} parentToken The token that owns the aura being checked.
+ * @param {string} auraId The ID of the aura to test.
+ */
+export function isTokenInside(testToken, parentToken, auraId) {
+	return AuraLayer.current?._auraManager.isInside(testToken, parentToken, auraId) ?? false;
+}
+
+/**
  * Can be used to toggle an effect on a target token or actor. If the user calling the function is able to modify the
  * actor, does so immediately. If the user cannot, the action is delegated to a GM user. If no GMs are present, the
  * action will fail.

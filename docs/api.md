@@ -8,6 +8,7 @@ Grid-Aware Auras exposes an API to be used by other macros, scripts, or modules.
 - [`getAurasContainingToken`](#getaurascontainingtoken)
 - [`getTokenAuras`](#gettokenauras)
 - [`getTokensInsideAura`](#gettokensinsideaura)
+- [`isTokenInside`](#istokeninside)
 - [`toggleEffect`](#toggleeffect)
 
 ## getAurasContainingToken
@@ -100,6 +101,36 @@ const tokens = api.getTokensInsideAura(parent, aura.id);
 for (const token of tokens) {
 	console.log(`${token.name} is inside ${parent.name}'s "${aura.name}" aura.`);
 }
+```
+
+## isTokenInside
+
+![Available Since v0.2.0](https://img.shields.io/badge/Available%20Since-v0.2.0-blue?style=flat-square)
+
+Checks to see if a token is within the area of another token's aura.
+
+### Parameters
+
+|Name|Type|Default|Description|
+|-|-|-|-|
+|testToken|`Token`|*Required*|The token to test if it is within the aura.|
+|parentToken|`Token`|*Required*|The token that owns the aura that is being tested.|
+|auraId|`string`|*Required*|The ID of the aura to test for.|
+
+### Returns
+
+Boolean indicating whether the testToken is inside parentToken's aura.
+
+### Example
+
+```js
+const { api } = game.modules.get("grid-aware-auras");
+const [target] = [...game.user.targets];
+const [parent] = canvas.tokens.controlled;
+const [aura] = api.getTokenAuras(parent);
+
+const isInside = api.isTokenInside(target, parent, aura.id);
+console.log(`${target.name} ${isInside ? 'is' : 'is not'} inside ${parent.name}'s "${aura.name}" aura.`);
 ```
 
 ## toggleEffect
