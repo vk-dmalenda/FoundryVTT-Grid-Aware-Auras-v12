@@ -327,13 +327,11 @@ export class AuraGeometry {
 	 */
 	#ySortedEdges;
 
-	#top;
-
-	#bottom;
+	#boundingBox;
 
 	/** @param {number[]} points */
 	constructor(points) {
-		({ sortedEdges: this.#ySortedEdges, top: this.#top, bottom: this.#bottom } = AuraGeometry.#getYSortedEdges(points));
+		({ sortedEdges: this.#ySortedEdges, boundingBox: this.#boundingBox } = AuraGeometry.#getYSortedEdges(points));
 	}
 
 	/**
@@ -342,8 +340,8 @@ export class AuraGeometry {
 	 * @param {number} y
 	 */
 	isInside(x, y) {
-		// If the y is out of bounds, then it is definately not inside so we can skip looking for edges
-		if (y < this.#top || y > this.#bottom)
+		// If the x or y is out of bounds, then it is definately not inside so we can skip looking for edges
+		if (y < this.#boundingBox.top || y > this.#boundingBox.bottom || x < this.#boundingBox.left || x > this.#boundingBox.right)
 			return false;
 
 		let collisionCount = 0;
@@ -356,7 +354,7 @@ export class AuraGeometry {
 
 			// Since the edges are sorted, once we find one that has a top (p1) Y higher than the test y point, we can
 			// stop searching
-			if (y < p1.y)
+			if (y <= p1.y)
 				break;
 
 			// If the bottom point of the line is lower than Y, then it can't collide.
@@ -379,15 +377,21 @@ export class AuraGeometry {
 		/** @type {{ p1: { x: number; y: number; }; p2: { x: number; y: number }; slope: number; }[]} */
 		const edges = [];
 
-		let top = Infinity;
-		let bottom = -Infinity;
+		const bb = {
+			top: Infinity,
+			right: -Infinity,
+			bottom: -Infinity,
+			left: Infinity
+		};
 
 		for (let i = 0; i < points.length; i += 2) {
+			const x1 = points[i];
 			const y1 = points[i + 1];
+			const x2 = points[(i + 2) % points.length];
 			const y2 = points[(i + 3) % points.length];
 
-			let p1 = { x: points[i], y: y1 };
-			let p2 = { x: points[(i + 2) % points.length], y: y2 };
+			let p1 = { x: x1, y: y1 };
+			let p2 = { x: x2, y: y2 };
 
 			// p1 should be top-left most, p2 should be bottom-right most; so may need to swap p1 and p2 around
 			if (p2.y < p1.y || (p2.y === p1.y && p2.x < p1.x))
@@ -399,14 +403,16 @@ export class AuraGeometry {
 
 			edges.push({ p1, p2, slope });
 
-			top = Math.min(top, y1, y2);
-			bottom = Math.max(bottom, y1, y2);
+			bb.top = Math.min(bb.top, y1, y2);
+			bb.right = Math.max(bb.right, x1, x2);
+			bb.bottom = Math.max(bb.bottom, y1, y2);
+			bb.left = Math.min(bb.left, x1, x2);
 		}
 
 		edges.sort((a, b) => a.p1.y === b.p1.y
 			? a.p1.x - b.p1.x
 			: a.p1.y - b.p1.y);
 
-		return { sortedEdges: edges, top, bottom };
+		return { sortedEdges: edges, boundingBox: bb };
 	}
 }
