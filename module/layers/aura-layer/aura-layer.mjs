@@ -180,7 +180,7 @@ export class AuraLayer extends CanvasLayer {
 				: [...game.canvas.tokens.placeables])
 			.flatMap(t => (this._auraManager.getTokenAuras(t)).map(aura => ({ parent: t, aura })));
 
-		// Array of the tokens to test and their entered auras sets
+		// Array of the tokens to test
 		const tokensToTest = (targetToken
 				? [targetToken]
 				: [...game.canvas.tokens.placeables]);
@@ -200,7 +200,7 @@ export class AuraLayer extends CanvasLayer {
 					&& aura.isInside(x + w / 2, y + h / 2, { useActualPosition });
 
 				if (this._auraManager.setIsInside(token, parent, aura.config.id, isInAura)) {
-					this.#handleTokenEnterLeaveAura(token, parent, getAura(aura.config), isInAura, userId ?? game.userId, isInit);
+					this.#handleTokenEnterLeaveAura(token, parent, aura.config, isInAura, userId ?? game.userId, isInit);
 				}
 			}
 		}
@@ -230,6 +230,9 @@ export class AuraLayer extends CanvasLayer {
 	 * @param {boolean} isInit
 	 */
 	#handleTokenEnterLeaveAura(token, parent, aura, hasEntered, userId, isInit) {
+		// Ensure defaults are set
+		aura = getAura(aura);
+
 		const isPreview = parent.isPreview || token.isPreview;
 
 		// Call hooks
