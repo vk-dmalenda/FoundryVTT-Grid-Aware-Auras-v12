@@ -119,6 +119,34 @@ export function calculateTokenOffset(edgeLength, gridSize, cols, centerSize, rad
 }
 
 /**
+ * Calculates the coordinates under a token that represent the centre of each cell it occupies.
+ * @param {Object} [options]
+ * @param {number} [options.gridSize] The size of the grid in pixels.
+ * @param {boolean} [options.cols] Whether the grid is using columns (true), or rows (false).
+ * @param {number} [options.centerSize] The size of the centre/token of the aura in grid cells. Most be a positive, non-zero integer.
+ * @param {boolean} [options.isHeavy] For evenly-sized centres, whether the bottom of the hexagon is the larger part.
+ */
+export function getPointsUnderToken({ gridSize = 100, cols = false, centerSize = 1, isHeavy = false } = {}) {
+	const points = [];
+
+	let nCells = Math.ceil(centerSize / 2) + (centerSize % 2 === 0 && !isHeavy ? 1 : 0);
+	let delta = nCells === centerSize ? -1 : 1;
+	for (let y = 0; y < centerSize; y++) {
+		for (let x = 0; x < nCells; x++) {
+			points.push({
+				x: (x + 0.5) * gridSize + /* offset: */ ((centerSize - nCells) * 0.5 * gridSize),
+				y: (y + 0.5) * 1.5 * UNIT_SIDE_LENGTH * gridSize + /* offset: */ UNIT_SIDE_LENGTH * 0.25 * gridSize
+			});
+		}
+
+		nCells += delta;
+		if (nCells === centerSize) delta *= -1;
+	}
+
+	return cols ? points.map(({ x, y }) => ({ x: y, y: x })) : points;
+}
+
+/**
  * Clamps the given angle (in degrees) to be a value between 0 <= a < 360.
  * @param {number} angle
  */

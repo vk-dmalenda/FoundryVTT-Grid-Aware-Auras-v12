@@ -99,3 +99,21 @@ export function generateSquareAuraPolygon(radius, {
 		return [x, y];
 	}
 }
+
+/**
+ * Calculates the coordinates under a token that represent the centre of each cell it occupies.
+ * @param {Object} [options]
+ * @param {number} [options.gridSize] The size of the grid in pixels.
+ * @param {number} [options.width] The width of the token, in grid cells.
+ * @param {number} [options.height] The height of the token, in grid cells.
+ */
+export function getPointsUnderToken({ gridSize: s = 100, width: w = 1, height: h = 1 } = {}) {
+	const points = [];
+
+	for (let x = 0; x < w; x++)
+	for (let y = 0; y < h; y++) {
+		points.push({ x: (x + 0.5) * s, y: (y + 0.5) * s });
+	}
+
+	return points;
+}

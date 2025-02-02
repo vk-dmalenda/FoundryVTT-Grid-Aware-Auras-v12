@@ -1,7 +1,9 @@
 /** @import { AuraConfig } from "../../utils/aura.mjs"; */
 import { ENABLE_EFFECT_AUTOMATION_SETTING, ENABLE_MACRO_AUTOMATION_SETTING, ENTER_LEAVE_AURA_HOOK, MODULE_NAME } from "../../consts.mjs";
 import { getAura, getTokenAuras } from "../../utils/aura.mjs";
+import { getPointsUnderToken as getHexPointsUnderToken } from "../../utils/hex-utils.mjs";
 import { isTerrainHeightToolsActive, targetsToken, toggleEffect, warn } from "../../utils/misc-utils.mjs";
+import { getPointsUnderToken as getSquarePointsUnderToken } from "../../utils/square-utils.mjs";
 import { AuraManager } from "./aura-manager.mjs";
 import { Aura } from "./aura.mjs";
 
@@ -185,19 +187,28 @@ export class AuraLayer extends CanvasLayer {
 				? [targetToken]
 				: [...game.canvas.tokens.placeables]);
 
-		// Perform tests
-		for (const { parent, aura } of aurasToTest) {
-			for (const token of tokensToTest) {
+		// Perform collision tests
+		for (const token of tokensToTest) {
+
+			// Work out the test points under the token
+			const { x: tokenX, y: tokenY } = useActualPosition ? token : token.document;
+			const { width: w, height: h } = token.document;
+			const pointsUnderToken = canvas.grid.type === CONST.GRID_TYPES.SQUARE
+				? getSquarePointsUnderToken({ gridSize: canvas.grid.size, width: w, height: h })
+				: getHexPointsUnderToken({
+					gridSize: canvas.grid.size,
+					cols: [CONST.GRID_TYPES.HEXEVENQ, CONST.GRID_TYPES.HEXODDQ].includes(canvas.grid.type),
+					centerSize: w !== h || (w % 1) !== 0 ? 0 : w,
+					isHeavy: Aura._isTokenHeavy(token)
+				});
+
+			for (const { parent, aura } of aurasToTest) {
 				if (parent.id === token.id) // token cannot enter it's own aura
 					continue;
 
-				const { x, y } = useActualPosition ? token : token.document;
-				const { w, h } = token;
-
 				const isInAura = aura.config.enabled
 					&& parent !== destroyToken && token !== destroyToken
-					// TODO: replace this with a test for each CELL within the token's area, instead of always using center
-					&& aura.isInside(x + w / 2, y + h / 2, { useActualPosition });
+					&& pointsUnderToken.some(point => aura.isInside(tokenX + point.x, tokenY + point.y, { useActualPosition }));
 
 				if (this._auraManager.setIsInside(token, parent, aura.config.id, isInAura)) {
 					this.#handleTokenEnterLeaveAura(token, parent, aura.config, isInAura, userId ?? game.userId, isInit);
