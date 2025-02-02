@@ -288,7 +288,7 @@ export class AuraLayer extends CanvasLayer {
 
 		// Terrain Height Tools integration
 		if (parent.isPreview && aura.terrainHeightTools.rulerOnDrag !== "NONE" && isTerrainHeightToolsActive()) {
-			const group = [MODULE_NAME, aura.id, token.actor.uuid].join("|");
+			const group = [MODULE_NAME, parent.document.uuid, aura.id, token.document.uuid].join("|");
 			if (hasEntered && targetsToken(token, aura.terrainHeightTools.targetTokens))
 				terrainHeightTools.drawLineOfSightRaysBetweenTokens(parent, token, { group, drawForOthers: false, includeEdges: aura.terrainHeightTools.rulerOnDrag === "E2E" });
 			else
