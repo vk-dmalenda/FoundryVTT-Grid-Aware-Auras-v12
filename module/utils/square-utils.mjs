@@ -1,6 +1,13 @@
 import { SQUARE_GRID_MODE } from "../consts.mjs";
 
 /**
+ * Cache holding the cells under a token for a unit size grid.
+ * Key = "width|height" (e.g. "3|2")
+ * @type {Map<string, { x: number; y: number; }[]>}
+ */
+const pointsUnderTokenCache = new Map();
+
+/**
  * Generates a square aura polygon for the given radius.
  * The origin of the polygon is the top-left of the centre.
  * @param {number} radius The radius of the polygon, measured in grid cells. Must be positive.
@@ -108,12 +115,19 @@ export function generateSquareAuraPolygon(radius, {
  * @param {number} [options.height] The height of the token, in grid cells.
  */
 export function getPointsUnderToken({ gridSize: s = 100, width: w = 1, height: h = 1 } = {}) {
-	const points = [];
+	const cacheKey = [w, h].join("|");
+	let points = pointsUnderTokenCache.get(cacheKey);
 
-	for (let x = 0; x < w; x++)
-	for (let y = 0; y < h; y++) {
-		points.push({ x: (x + 0.5) * s, y: (y + 0.5) * s });
+	// Create the points if not already done so
+	if (!points) {
+		points = [];
+		pointsUnderTokenCache.set(cacheKey, points);
+
+		for (let x = 0; x < w; x++)
+		for (let y = 0; y < h; y++) {
+			points.push({ x: x + 0.5, y: y + 0.5 });
+		}
 	}
 
-	return points;
+	return points.map(({ x, y }) => ({ x: x * s, y: y * s }));
 }

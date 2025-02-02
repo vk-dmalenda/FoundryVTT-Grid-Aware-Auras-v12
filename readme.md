@@ -86,9 +86,9 @@ _(Numbers are for illustrative purposes only)_
 
 ### Collision Detection
 
-A quick note on collision detection: the collisions to test if a token is inside an aura is done by checking the centre of each cell under the token. For example, on a hex grid with a large token, the points tested would be here (shown in red):
+A quick note on collision detection: the collisions to test if a token is inside an aura is done by checking the centre of each cell under the token. For example, on a 3x3 token, the points tested would be here on hex and square grids (shown in red):
 
-![Test points on a large hex token](./docs/img/collision-detection.png)
+![Test points for a 3x3 token](./docs/img/collision-detection.png)
 
 GAA does not check from the vertices of the token's border because rounding errors and imprecision with the geometry can cause false positives. It's far easier to just check the centre cells like this and in most cases it will make little difference. In future I _may_ change this or add alternative methods, but for now it will stay like this.
 

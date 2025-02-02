@@ -5,6 +5,13 @@ const UNIT_SIDE_LENGTH = 1 / Math.sqrt(3);
 const RADIANS_30 = 30 * Math.PI / 180;
 
 /**
+ * Cache holding the cells under a token for a non-columnar unit size grid.
+ * Key = "size|isHeavy" (e.g. "2|true")
+ * @type {Map<string, { x: number; y: number; }[]>}
+ */
+const pointsUnderTokenCache = new Map();
+
+/**
  * A pre-calculated map of the X and Y offsets of a line of length 1 in multiples of 30 degrees.
  * The keys are in degrees because it's easier for me to understand that way :) And also we _may_ run into rounding
  * errors when using radians as keys?
@@ -127,23 +134,34 @@ export function calculateTokenOffset(edgeLength, gridSize, cols, centerSize, rad
  * @param {boolean} [options.isHeavy] For evenly-sized centres, whether the bottom of the hexagon is the larger part.
  */
 export function getPointsUnderToken({ gridSize = 100, cols = false, centerSize = 1, isHeavy = false } = {}) {
-	const points = [];
+	const cacheKey = [centerSize, isHeavy].join("|");
+	let points = pointsUnderTokenCache.get(cacheKey);
 
-	let nCells = Math.ceil(centerSize / 2) + (centerSize % 2 === 0 && !isHeavy ? 1 : 0);
-	let delta = nCells === centerSize ? -1 : 1;
-	for (let y = 0; y < centerSize; y++) {
-		for (let x = 0; x < nCells; x++) {
-			points.push({
-				x: (x + 0.5) * gridSize + /* offset: */ ((centerSize - nCells) * 0.5 * gridSize),
-				y: (y + 0.5) * 1.5 * UNIT_SIDE_LENGTH * gridSize + /* offset: */ UNIT_SIDE_LENGTH * 0.25 * gridSize
-			});
+	// Create the points if not already done so
+	if (!points) {
+		points = [];
+		pointsUnderTokenCache.set(cacheKey, points);
+
+		let nCells = Math.ceil(centerSize / 2) + (centerSize % 2 === 0 && !isHeavy ? 1 : 0);
+		let delta = nCells === centerSize ? -1 : 1;
+		for (let y = 0; y < centerSize; y++) {
+			for (let x = 0; x < nCells; x++) {
+				points.push({
+					x: /* step: */ x + 0.5 + /* offset: */ (centerSize - nCells) * 0.5,
+					y: /* step: */ (y + 0.5) * 1.5 * UNIT_SIDE_LENGTH + /* offset: */ UNIT_SIDE_LENGTH * 0.25
+				});
+			}
+
+			nCells += delta;
+			if (nCells === centerSize) delta *= -1;
 		}
-
-		nCells += delta;
-		if (nCells === centerSize) delta *= -1;
 	}
 
-	return cols ? points.map(({ x, y }) => ({ x: y, y: x })) : points;
+	// Need to multiply the coordinates based on grid-size.
+	// If using a row grid instead of a column grid, need to also swap X and Y coordinates
+	return cols
+		? points.map(({ x, y }) => ({ x: y * gridSize, y: x * gridSize }))
+		: points.map(({ x, y }) => ({ x: x * gridSize, y: y * gridSize }));
 }
 
 /**
